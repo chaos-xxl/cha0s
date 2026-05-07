@@ -29,3 +29,4 @@ export type { Fragment } from './types/fragment.js';
 export type { Message, RoutingMetadata } from './types/message.js';
 export type { Id, IntentSignal, Role } from './types/primitives.js';
 export { IntentSignal as IntentSignalCtor } from './types/primitives.js';
+export type { CreationSource, TopicSpace, TopicStatus } from './types/topic-space.js';
