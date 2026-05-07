@@ -26,4 +26,6 @@ export const VERSION = '0.1.0-alpha.0' as const;
 export const STATUS = 'alpha' as const;
 
 export * from './config/index.js';
+export * from './routing/index.js';
+export * from './strategies/index.js';
 export * from './types/index.js';
