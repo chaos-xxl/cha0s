@@ -1,0 +1,35 @@
+{
+  "name": "cha0s-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The conversation organization layer for AI chat apps.",
+  "author": "Chaos <chaosxinglong@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/chaos-xxl/cha0s",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaos-xxl/cha0s.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chaos-xxl/cha0s/issues"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
+    "clean": "pnpm -r exec rm -rf dist node_modules .turbo"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -56,7 +56,9 @@ Thumbs.db
 
 # Package manager artifacts
 *.tgz
-.npmrc
+# .npmrc is intentionally committed — it contains only non-sensitive monorepo config.
+# Ignore any npmrc with "auth" in its filename just in case.
+*auth*.npmrc
 
 # Local development
 .local/
