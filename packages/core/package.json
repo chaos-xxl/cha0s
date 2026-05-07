@@ -1,0 +1,61 @@
+{
+  "name": "@cha0s-ai/core",
+  "version": "0.1.0-alpha.0",
+  "description": "Turn your conversation chaos down to 0. The conversation organization layer for AI chat apps.",
+  "keywords": [
+    "ai",
+    "conversation",
+    "chat",
+    "llm",
+    "routing",
+    "clustering",
+    "topic",
+    "organization"
+  ],
+  "author": "Chaos <chaosxinglong@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/chaos-xxl/cha0s",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaos-xxl/cha0s.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/chaos-xxl/cha0s/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"No lint configured yet\" && exit 0",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "vitest": "^2.1.8"
+  }
+}
