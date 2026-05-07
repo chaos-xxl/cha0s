@@ -40,11 +40,11 @@ That's a design failure, not a feature. AI has more than enough intelligence to 
 
 ### Where cha0s fits
 
-| Library | Scope |
-|---------|-------|
-| [LangChain](https://github.com/langchain-ai/langchain) | Connect LLMs to tools and data |
-| [Mem0](https://github.com/mem0ai/mem0) | Remember user facts and preferences |
-| **cha0s** | **Organize the conversation itself** |
+| Library                                                | Scope                                |
+| ------------------------------------------------------ | ------------------------------------ |
+| [LangChain](https://github.com/langchain-ai/langchain) | Connect LLMs to tools and data       |
+| [Mem0](https://github.com/mem0ai/mem0)                 | Remember user facts and preferences  |
+| **cha0s**                                              | **Organize the conversation itself** |
 
 These are complementary. A full AI chat stack can use all three.
 
@@ -57,11 +57,11 @@ import { Cha0s } from '@cha0s-ai/core';
 import { openai } from '@cha0s-ai/openai';
 
 const cha0s = new Cha0s({
-  llm: openai({ apiKey: process.env.OPENAI_API_KEY })
+  llm: openai({ apiKey: process.env.OPENAI_API_KEY }),
 });
 
 // Send a message. cha0s decides where it belongs.
-const result = await cha0s.route("Book me a flight to Beijing tomorrow.");
+const result = await cha0s.route('Book me a flight to Beijing tomorrow.');
 
 // → { destination: 'topic:travel', confidence: 0.89, reasoning: '...' }
 ```
