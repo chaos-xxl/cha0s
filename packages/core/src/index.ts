@@ -24,3 +24,8 @@ export const VERSION = '0.1.0-alpha.0' as const;
  * - `stable`: Semantic versioning guarantees apply.
  */
 export const STATUS = 'alpha' as const;
+
+export type { Fragment } from './types/fragment.js';
+export type { Message, RoutingMetadata } from './types/message.js';
+export type { Id, IntentSignal, Role } from './types/primitives.js';
+export { IntentSignal as IntentSignalCtor } from './types/primitives.js';
