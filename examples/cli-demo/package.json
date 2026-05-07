@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "start": "node --experimental-strip-types src/index.ts",
+    "start": "pnpm build && node dist/index.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"No lint configured yet\" && exit 0",
