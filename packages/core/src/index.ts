@@ -25,10 +25,5 @@ export const VERSION = '0.1.0-alpha.0' as const;
  */
 export const STATUS = 'alpha' as const;
 
-export type { Fragment } from './types/fragment.js';
-export type { InboxSpace } from './types/inbox-space.js';
-export { addFragment, createInboxSpace, removeFragments } from './types/inbox-space.js';
-export type { Message, RoutingMetadata } from './types/message.js';
-export type { Id, IntentSignal, Role } from './types/primitives.js';
-export { IntentSignal as IntentSignalCtor } from './types/primitives.js';
-export type { CreationSource, TopicSpace, TopicStatus } from './types/topic-space.js';
+export * from './config/index.js';
+export * from './types/index.js';
