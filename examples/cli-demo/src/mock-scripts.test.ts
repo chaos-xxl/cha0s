@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Cha0s } from '@cha0s-ai/core';
+import { Clinic } from '@doctorchaos-ai/core';
 import { replaySeedScript, SEED_SCRIPT } from './mock-scripts.js';
 
 describe('SEED_SCRIPT shape', () => {
@@ -18,8 +18,8 @@ describe('SEED_SCRIPT shape', () => {
 });
 
 describe('replaySeedScript', () => {
-  it('drains the seed script into a cha0s instance', async () => {
-    const cha0s = new Cha0s({
+  it('drains the seed script into a clinic instance', async () => {
+    const clinic = new Clinic({
       initialSpaces: [
         {
           id: 'travel',
@@ -41,11 +41,11 @@ describe('replaySeedScript', () => {
       },
     });
     let stepCount = 0;
-    await replaySeedScript(cha0s, () => {
+    await replaySeedScript(clinic, () => {
       stepCount++;
     });
     expect(stepCount).toBeGreaterThanOrEqual(SEED_SCRIPT.messages.length);
     // The Travel space should have collected at least one message.
-    expect(cha0s.space('travel')!.messages.length).toBeGreaterThan(0);
+    expect(clinic.space('travel')!.messages.length).toBeGreaterThan(0);
   }, 10000); // generous timeout to absorb the delay
 });

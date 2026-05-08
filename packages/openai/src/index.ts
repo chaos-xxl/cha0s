@@ -1,18 +1,19 @@
 /**
- * @cha0s-ai/openai
+ * @doctorchaos-ai/openai
  *
- * OpenAI embedding adapter for cha0s. Drop this into a {@link Cha0s}
- * instance to replace keyword matching with semantic routing backed
- * by OpenAI's `text-embedding-3-small` (or any compatible endpoint).
+ * OpenAI embedding adapter for Doctor Chaos. Drop this into a
+ * {@link Clinic} instance to replace keyword matching with semantic
+ * routing backed by OpenAI's `text-embedding-3-small` (or any
+ * compatible endpoint).
  *
  * @example
  * ```ts
- * import { Cha0s } from '@cha0s-ai/core';
- * import { openaiEmbedding, openaiClustering } from '@cha0s-ai/openai';
+ * import { Clinic } from '@doctorchaos-ai/core';
+ * import { openaiEmbedding, openaiClustering } from '@doctorchaos-ai/openai';
  *
  * const embedding = openaiEmbedding({ apiKey: process.env.OPENAI_API_KEY! });
  *
- * const cha0s = new Cha0s({
+ * const clinic = new Clinic({
  *   engineOptions: { matchingStrategy: embedding },
  *   clusteringStrategy: openaiClustering({ client: embedding.client }),
  * });

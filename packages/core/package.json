@@ -1,7 +1,7 @@
 {
-  "name": "@cha0s-ai/core",
+  "name": "@doctorchaos-ai/core",
   "version": "0.1.0-alpha.0",
-  "description": "Turn your conversation chaos down to 0. The conversation organization layer for AI chat apps.",
+  "description": "Doctor Chaos — the conversation organization layer for AI chat apps. Routing, clustering, and lifecycle for self-organising conversations.",
   "keywords": [
     "ai",
     "conversation",
@@ -10,18 +10,19 @@
     "routing",
     "clustering",
     "topic",
-    "organization"
+    "organization",
+    "doctor-chaos"
   ],
   "author": "Chaos <chaosxinglong@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/chaos-xxl/cha0s",
+  "homepage": "https://github.com/doctorchaos-ai/doctor-chaos",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chaos-xxl/cha0s.git",
+    "url": "git+https://github.com/doctorchaos-ai/doctor-chaos.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/chaos-xxl/cha0s/issues"
+    "url": "https://github.com/doctorchaos-ai/doctor-chaos/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",

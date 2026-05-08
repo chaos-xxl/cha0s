@@ -9,5 +9,5 @@ export default defineConfig({
   treeshake: true,
   target: 'es2022',
   outDir: 'dist',
-  external: ['@cha0s-ai/core'],
+  external: ['@doctorchaos-ai/core'],
 });

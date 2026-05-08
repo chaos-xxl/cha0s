@@ -1,15 +1,39 @@
-import { Cha0s } from '@cha0s-ai/core';
+import { Clinic } from '@doctorchaos-ai/core';
 import * as readline from 'node:readline';
 import { color, paint, showCursor } from './ui/ansi.js';
 import { render, type RenderState } from './ui/renderer.js';
 import { replaySeedScript } from './mock-scripts.js';
 
+/**
+ * Print the clinic's arrival notice. Sets the tone for the rest of
+ * the session.
+ */
+function printWelcome(): void {
+  const lines = [
+    '┌─── Welcome to Doctor Chaos v0.1.0 ────────────────┐',
+    '│                                                    │',
+    '│  Waiting time: unknown                             │',
+    '│  Bed availability: sufficient                      │',
+    '│  Your assigned doctor: whoever shows up first      │',
+    '│                                                    │',
+    '│  If this is an emergency, please type faster.      │',
+    '│                                                    │',
+    '└────────────────────────────────────────────────────┘',
+  ];
+  for (const line of lines) {
+    console.log(paint(line, color.orange));
+  }
+  console.log();
+}
+
 async function main(): Promise<void> {
+  printWelcome();
+
   // Pre-seed a few "homes" for messages so routing looks intelligent
   // out of the gate. These are the spaces we expect messages to land
   // into. In a real host application they'd come from persistent
   // storage.
-  const cha0s = new Cha0s({
+  const clinic = new Clinic({
     configuration: {
       ...{
         confidenceThreshold: 0.25,
@@ -89,7 +113,7 @@ async function main(): Promise<void> {
   const redraw = (): void => {
     if (mutableState.isClosing) return;
     render({
-      cha0s,
+      clinic,
       focusedSpaceId: mutableState.focusedSpaceId,
       lastReasoning: mutableState.lastReasoning,
     });
@@ -102,17 +126,18 @@ async function main(): Promise<void> {
   };
 
   console.log(paint('Seeding demo conversations…', color.dim));
-  await replaySeedScript(cha0s, () => {
+  await replaySeedScript(clinic, () => {
     if (mutableState.isClosing) return;
     render({
-      cha0s,
+      clinic,
       focusedSpaceId: mutableState.focusedSpaceId,
       lastReasoning: mutableState.lastReasoning,
     });
   });
   if (mutableState.isClosing) return;
-  mutableState.focusedSpaceId = cha0s.spaces({ status: 'active' })[0]?.id ?? null;
-  mutableState.lastReasoning = 'Ready. Type a message and watch it route. /help for commands.';
+  mutableState.focusedSpaceId = clinic.spaces({ status: 'active' })[0]?.id ?? null;
+  mutableState.lastReasoning =
+    'The clinic is open. Type a message and watch it triage. /help for commands.';
   redraw();
 
   rl.on('line', async (raw) => {
@@ -123,7 +148,7 @@ async function main(): Promise<void> {
     }
 
     if (line.startsWith('/')) {
-      const result = await handleCommand(line, cha0s);
+      const result = await handleCommand(line, clinic);
       if (result === 'quit') {
         rl.close();
         return;
@@ -133,7 +158,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    const result = await cha0s.send({ role: 'user', content: line });
+    const result = await clinic.send({ role: 'user', content: line });
     if (result.destination === 'topicSpace') {
       mutableState.focusedSpaceId = result.space.id;
       const label = result.isNewSpace ? 'new space' : 'routed';
@@ -142,7 +167,7 @@ async function main(): Promise<void> {
       mutableState.focusedSpaceId = null;
       mutableState.lastReasoning = `[inbox] ${result.decision.reasoning}`;
     }
-    await cha0s.checkPackaging();
+    await clinic.checkPackaging();
     redraw();
   });
 
@@ -150,7 +175,12 @@ async function main(): Promise<void> {
     mutableState.isClosing = true;
     showCursor();
     console.log();
-    console.log(paint('chao for now.', color.orange));
+    console.log(
+      paint(
+        'The clinic is now closed. Please collect your belongings on the way out.',
+        color.orange,
+      ),
+    );
     // Give pending async work a tick to notice the flag, then exit.
     setImmediate(() => process.exit(0));
   });
@@ -160,20 +190,20 @@ async function main(): Promise<void> {
   });
 }
 
-async function handleCommand(line: string, cha0s: Cha0s): Promise<string> {
+async function handleCommand(line: string, clinic: Clinic): Promise<string> {
   const [cmd] = line.slice(1).split(/\s+/);
   switch (cmd) {
     case 'spaces': {
-      const all = cha0s.spaces();
+      const all = clinic.spaces();
       if (all.length === 0) return 'no spaces yet.';
       return `${all.length} spaces: ${all.map((s) => `${s.name}[${s.status}]`).join(', ')}`;
     }
     case 'inbox': {
-      const inbox = cha0s.inbox();
+      const inbox = clinic.inbox();
       return `${inbox.fragments.length} fragments, ${inbox.totalMessageCount} messages.`;
     }
     case 'package': {
-      const created = await cha0s.checkPackaging();
+      const created = await clinic.checkPackaging();
       return created.length > 0
         ? `packaged ${created.length} new space(s): ${created.map((s) => s.name).join(', ')}`
         : 'nothing dense enough to package yet.';

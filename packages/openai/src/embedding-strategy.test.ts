@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { TopicSpace } from '@cha0s-ai/core';
+import type { TopicSpace } from '@doctorchaos-ai/core';
 import { OpenAiEmbeddingClient, type FetchLike } from './client.js';
 import { OpenAiEmbeddingStrategy, openaiEmbedding } from './embedding-strategy.js';
 

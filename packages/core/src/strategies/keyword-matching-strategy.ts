@@ -19,11 +19,11 @@ export const NEW_TOPIC_MAX_EXISTING_SCORE = 0.3;
  * A deliberately simple routing strategy based on keyword hit ratio.
  *
  * This is the MVP strategy — the one you get out of the box when you
- * `new Cha0s()` without plugging in anything smarter. It exists for
+ * `new Clinic()` without plugging in anything smarter. It exists for
  * three reasons:
  *
- *  1. Zero dependencies. No embeddings, no LLM calls — cha0s works
- *     offline and without API keys.
+ *  1. Zero dependencies. No embeddings, no LLM calls — Doctor Chaos
+ *     works offline and without API keys.
  *  2. Predictable. The score is a flat fraction of keyword hits, so
  *     you can reason about routing decisions with a calculator.
  *  3. Fast. Good enough as a baseline; embedding-backed strategies

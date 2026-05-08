@@ -1,7 +1,7 @@
 /**
  * Extract a lightweight keyword set from a text message.
  *
- * cha0s needs a "good enough" keyword list for two jobs:
+ * Doctor Chaos needs a "good enough" keyword list for two jobs:
  *  - Seeding {@link Fragment.keywords} when a message lands in the inbox.
  *  - Comparing messages by keyword overlap in the correction learner.
  *

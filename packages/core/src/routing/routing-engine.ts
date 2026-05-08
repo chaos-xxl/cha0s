@@ -66,7 +66,7 @@ export interface RoutingEngineOptions {
 }
 
 /**
- * The cha0s routing engine.
+ * The Doctor Chaos routing engine.
  *
  * ## Design principles
  *

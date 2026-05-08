@@ -1,4 +1,4 @@
-import type { ClusteringStrategy, Fragment, FragmentCluster } from '@cha0s-ai/core';
+import type { ClusteringStrategy, Fragment, FragmentCluster } from '@doctorchaos-ai/core';
 import { OpenAiEmbeddingClient, type OpenAiEmbeddingClientOptions } from './client.js';
 import { cosineSimilarity } from './math.js';
 
@@ -79,8 +79,8 @@ export class OpenAiClusteringStrategy implements ClusteringStrategy {
    * async network call. Callers should use {@link evaluateClustersAsync}
    * whenever possible. The sync contract exists because the keyword
    * clusterer is synchronous; for embedding-backed strategies, host
-   * applications should use the async path exposed through Cha0s's
-   * `checkPackaging` flow (which awaits).
+   * applications should use the async path exposed through the Clinic
+   * facade's `checkPackaging` flow (which awaits).
    *
    * Implementation note: calling this from a strictly-synchronous
    * caller will throw, because we cannot perform the embedding
@@ -153,7 +153,7 @@ export class OpenAiClusteringStrategy implements ClusteringStrategy {
  * Factory matching the verb-style used elsewhere:
  *
  * ```ts
- * new Cha0s({ clusteringStrategy: openaiClustering({ apiKey }) });
+ * new Clinic({ clusteringStrategy: openaiClustering({ apiKey }) });
  * ```
  */
 export function openaiClustering(

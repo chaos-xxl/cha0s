@@ -9,9 +9,10 @@ import type { Fragment } from './fragment.js';
  *
  * Real conversations are messy. Users say things that are too short,
  * too one-off, or too orthogonal to any current topic to deserve their
- * own space. Rather than force a premature decision, cha0s accumulates
- * these as {@link Fragment} entries in the inbox. The clustering engine
- * then periodically inspects the inbox looking for emergent topics,
+ * own space. Rather than force a premature decision, Doctor Chaos
+ * accumulates these as {@link Fragment} entries in the inbox. The
+ * clustering engine then periodically inspects the inbox looking for
+ * emergent topics,
  * and when a cluster is dense enough, "packages" it into a new
  * {@link TopicSpace} — at which point the fragments are *moved out*
  * (not copied) to keep the inbox lean.

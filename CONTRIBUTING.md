@@ -1,10 +1,10 @@
-# Contributing to cha0s
+# Contributing to Doctor Chaos
 
-Thanks for your interest in cha0s! This document explains how to engage with the project.
+Thanks for your interest in Doctor Chaos! This document explains how to engage with the project.
 
 ## Current State: Early Development
 
-cha0s is in **early development**, pre-v0.1.0. During this phase:
+Doctor Chaos is in **early development**, pre-v0.1.0. During this phase:
 
 - ❌ **Issues are currently disabled** — the core API is still being designed, and incoming issues would mostly be "when will X be ready?" which this roadmap already answers.
 - ❌ **External PRs are not accepted yet** — a fast, stable API design requires single-author velocity right now.

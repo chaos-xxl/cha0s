@@ -1,6 +1,6 @@
-# @cha0s-ai/core
+# @doctorchaos-ai/core
 
-> Turn your conversation chaos down to 0.
+> Doctor Chaos will see you now.
 > The conversation organization layer for AI chat apps.
 
 **Status**: 🚧 Alpha — under active development. Public API may change between minor releases.
@@ -8,16 +8,22 @@
 ## Install
 
 ```bash
-npm install @cha0s-ai/core
+npm install @doctorchaos-ai/core
 # or
-pnpm add @cha0s-ai/core
+pnpm add @doctorchaos-ai/core
 # or
-yarn add @cha0s-ai/core
+yarn add @doctorchaos-ai/core
 ```
 
-## What is cha0s?
+## What is Doctor Chaos?
 
-cha0s is a TypeScript library that gives AI chat apps automatic conversation structure — so users never have to organize their own chat history.
+Doctor Chaos is a TypeScript library that gives AI chat apps automatic conversation structure — so users never have to organize their own chat history.
+
+Three places, one admission process:
+
+- **Front Desk** — every message is triaged here
+- **General Practice** — the safe waiting room for anything not yet a "thing"
+- **Topic Space (Specialty)** — long-running, focused conversations the library creates for you
 
 Think of it as the missing layer between LLMs and chat UIs:
 
@@ -25,7 +31,7 @@ Think of it as the missing layer between LLMs and chat UIs:
 | ------------------------------------------------------ | ------------------------------------ |
 | [LangChain](https://github.com/langchain-ai/langchain) | Connect LLMs to tools and data       |
 | [Mem0](https://github.com/mem0ai/mem0)                 | Remember user facts and preferences  |
-| **cha0s**                                              | **Organize the conversation itself** |
+| **Doctor Chaos**                                       | **Organize the conversation itself** |
 
 ## Roadmap
 
@@ -34,12 +40,12 @@ The real API is being ported from a Swift reference implementation. Upcoming mod
 - Message routing with time-decay confidence weighting
 - Topic-space emergence from conversation fragments
 - Fragment clustering & packaging
-- Pluggable LLM and embedding adapters (`@cha0s-ai/openai`, `@cha0s-ai/anthropic`, ...)
-- Pluggable storage adapters (`@cha0s-ai/memory`, `@cha0s-ai/indexeddb`, ...)
+- Pluggable LLM and embedding adapters (`@doctorchaos-ai/openai`, `@doctorchaos-ai/anthropic`, ...)
+- Pluggable storage adapters (`@doctorchaos-ai/memory`, `@doctorchaos-ai/indexeddb`, ...)
 
 ## Links
 
-- **Project**: [github.com/chaos-xxl/cha0s](https://github.com/chaos-xxl/cha0s)
+- **Project**: [github.com/doctorchaos-ai/doctor-chaos](https://github.com/doctorchaos-ai/doctor-chaos)
 - **Author**: [@Chaosxinglong](https://x.com/Chaosxinglong) on X
 
 ## License

@@ -40,7 +40,7 @@ export type TopicStatus =
   | 'merged';
 
 /**
- * A coherent, ongoing conversation thread identified by cha0s.
+ * A coherent, ongoing conversation thread identified by Doctor Chaos.
  *
  * A `TopicSpace` represents a "room" dedicated to one evolving topic
  * (e.g. a trip being planned, a bug being debugged, a recipe being
@@ -51,9 +51,10 @@ export type TopicStatus =
  * ## UI separation
  *
  * Deliberately, this interface contains no presentation fields (no
- * colour, icon, position, or rendering hints). The goal of cha0s is to
- * expose conversation structure — how spaces should be *rendered* is a
- * concern of the host application, which may or may not have a visible
+ * colour, icon, position, or rendering hints). The goal of Doctor
+ * Chaos is to expose conversation structure — how spaces should be
+ * *rendered* is a concern of the host application, which may or may
+ * not have a visible
  * side-bar at all (e.g. an IM agent surfaces spaces implicitly by
  * swapping context per turn).
  *

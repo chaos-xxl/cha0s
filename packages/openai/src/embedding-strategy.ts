@@ -1,4 +1,4 @@
-import type { RoutingStrategy, TopicSpace } from '@cha0s-ai/core';
+import type { RoutingStrategy, TopicSpace } from '@doctorchaos-ai/core';
 import { OpenAiEmbeddingClient, type OpenAiEmbeddingClientOptions } from './client.js';
 import { averageVectors, cosineSimilarity, toRoutingScore } from './math.js';
 
@@ -105,12 +105,12 @@ export class OpenAiEmbeddingStrategy implements RoutingStrategy {
 
 /**
  * Shorthand constructor matching the verb-oriented factory style used
- * elsewhere in cha0s:
+ * elsewhere in Doctor Chaos:
  *
  * ```ts
- * import { openaiEmbedding } from '@cha0s-ai/openai';
+ * import { openaiEmbedding } from '@doctorchaos-ai/openai';
  *
- * const cha0s = new Cha0s({
+ * const clinic = new Clinic({
  *   engineOptions: {
  *     matchingStrategy: openaiEmbedding({
  *       apiKey: process.env.OPENAI_API_KEY!,

@@ -1,4 +1,4 @@
-import type { Cha0s } from '@cha0s-ai/core';
+import type { Clinic } from '@doctorchaos-ai/core';
 
 /**
  * A small corpus of seed messages the demo replays on startup. The
@@ -7,7 +7,7 @@ import type { Cha0s } from '@cha0s-ai/core';
  * boring first impression.
  *
  * Each entry is a plain message string. The demo pipes them through
- * `cha0s.send()` one by one, pausing briefly so a watcher can see
+ * `clinic.send()` one by one, pausing briefly so a watcher can see
  * spaces appear.
  */
 
@@ -40,15 +40,15 @@ export const SEED_SCRIPT: Scripted = {
   ],
 };
 
-export async function replaySeedScript(cha0s: Cha0s, onStep: () => void): Promise<void> {
+export async function replaySeedScript(clinic: Clinic, onStep: () => void): Promise<void> {
   for (const content of SEED_SCRIPT.messages) {
-    await cha0s.send({ role: 'user', content });
+    await clinic.send({ role: 'user', content });
     onStep();
     await sleep(SEED_SCRIPT.delayMs);
   }
   // One final packaging pass — the dense clusters should now get
   // promoted into proper topic spaces.
-  await cha0s.checkPackaging();
+  await clinic.checkPackaging();
   onStep();
 }
 

@@ -7,7 +7,7 @@ import type { TopicSpace } from '../types/topic-space.js';
 /**
  * A suggested lifecycle action emitted by {@link TopicSpaceLifecycleManager.evaluate}.
  *
- * The manager only recommends — the host application (or the Cha0s
+ * The manager only recommends — the host application (or the Clinic
  * facade) decides whether to apply them. This split matters in the
  * rare case a host wants to override or log before acting.
  */

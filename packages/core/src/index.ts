@@ -1,11 +1,12 @@
 /**
- * @cha0s-ai/core
+ * @doctorchaos-ai/core
  *
- * Turn your conversation chaos down to 0.
- * The conversation organization layer for AI chat apps.
+ * Doctor Chaos — the conversation organization layer for AI chat apps.
+ * Routes every incoming message to its rightful specialty; rests the
+ * ambiguous ones in the waiting room until a pattern emerges.
  *
  * This is an early-stage release. The public API is under active design.
- * Follow https://github.com/chaos-xxl/cha0s for updates.
+ * Follow https://github.com/doctorchaos-ai/doctor-chaos for updates.
  */
 
 /**
@@ -25,7 +26,7 @@ export const VERSION = '0.1.0-alpha.0' as const;
  */
 export const STATUS = 'alpha' as const;
 
-export * from './cha0s.js';
+export * from './clinic.js';
 export * from './config/index.js';
 export * from './keywords/index.js';
 export * from './learning/index.js';

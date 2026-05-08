@@ -1,7 +1,7 @@
 import type { Id, Role } from './primitives.js';
 
 /**
- * Provenance data describing how a message was routed by cha0s.
+ * Provenance data describing how a message was routed by Doctor Chaos.
  *
  * Attached to {@link Message} so that downstream systems (UI, analytics,
  * correction learners) can understand — and, when needed, reconstruct —
@@ -42,9 +42,10 @@ export interface RoutingMetadata {
 /**
  * A single turn in a conversation.
  *
- * A `Message` is the atomic unit of data that flows through cha0s. It
- * intentionally mirrors the message shape used by major LLM SDKs
- * (OpenAI, Anthropic, Vercel AI SDK) so that integration requires zero
+ * A `Message` is the atomic unit of data that flows through Doctor
+ * Chaos. It intentionally mirrors the message shape used by major LLM
+ * SDKs (OpenAI, Anthropic, Vercel AI SDK) so that integration requires
+ * zero
  * data mapping: host applications can pass their existing messages
  * directly to the router.
  *
@@ -66,8 +67,9 @@ export interface Message {
   readonly timestamp: Date;
 
   /**
-   * Routing provenance, populated after the message passes through the
-   * cha0s router. Absent on messages that have not yet been routed.
+   * Routing provenance, populated after the message passes through
+   * the Doctor Chaos router. Absent on messages that have not yet been
+   * routed.
    */
   readonly routing?: RoutingMetadata;
 }

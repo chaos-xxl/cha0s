@@ -10,7 +10,7 @@ import type { TopicSpace } from '../types/topic-space.js';
  * a brand-new space.
  *
  * The default implementation is {@link KeywordMatchingStrategy}, which
- * uses keyword overlap. Adapter packages (e.g. `@cha0s-ai/openai`) ship
+ * uses keyword overlap. Adapter packages (e.g. `@doctorchaos-ai/openai`) ship
  * embedding-based strategies by implementing this same interface.
  *
  * Implementations should be pure: the same inputs must yield the same
