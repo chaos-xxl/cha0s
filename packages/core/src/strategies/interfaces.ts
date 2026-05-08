@@ -16,6 +16,10 @@ import type { TopicSpace } from '../types/topic-space.js';
  * Implementations should be pure: the same inputs must yield the same
  * outputs. State (if any) belongs in the configuration, not in the
  * instance.
+ *
+ * Both methods return Promises so that embedding-backed adapters can
+ * do network IO. Synchronous implementations simply return a resolved
+ * promise (or the plain value — TypeScript auto-wraps it).
  */
 export interface RoutingStrategy {
   /**
@@ -25,7 +29,7 @@ export interface RoutingStrategy {
    * Implementations must handle empty or punctuation-only messages by
    * returning 0, and must tolerate topic spaces with no keywords.
    */
-  relevanceScore(message: string, topicSpace: TopicSpace): number;
+  relevanceScore(message: string, topicSpace: TopicSpace): number | Promise<number>;
 
   /**
    * Decide whether a message is substantive enough to seed a new topic
@@ -33,7 +37,10 @@ export interface RoutingStrategy {
    *
    * Implementations typically check length and content diversity.
    */
-  isNewTopicWorthy(message: string, existingSpaces: readonly TopicSpace[]): boolean;
+  isNewTopicWorthy(
+    message: string,
+    existingSpaces: readonly TopicSpace[],
+  ): boolean | Promise<boolean>;
 }
 
 /**

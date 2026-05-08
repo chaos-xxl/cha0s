@@ -166,7 +166,10 @@ export class RoutingEngine {
    * active one — a strong signal by definition wants a real space,
    * not the inbox.
    */
-  private routeStrong(message: string, spaces: readonly TopicSpace[]): RoutingDecision {
+  private async routeStrong(
+    message: string,
+    spaces: readonly TopicSpace[],
+  ): Promise<RoutingDecision> {
     const active = spaces.filter((s) => s.status === 'active');
     if (active.length === 0) {
       return {
@@ -176,10 +179,12 @@ export class RoutingEngine {
       };
     }
 
-    const scored = active.map((space) => ({
-      space,
-      relevance: this.matchingStrategy.relevanceScore(message, space),
-    }));
+    const scored = await Promise.all(
+      active.map(async (space) => ({
+        space,
+        relevance: await this.matchingStrategy.relevanceScore(message, space),
+      })),
+    );
 
     const matching = scored.filter((s) => s.relevance > 0);
     if (matching.length > 0) {
@@ -214,18 +219,20 @@ export class RoutingEngine {
    * matching strategy whether the message is substantive enough to
    * seed a brand-new space; if not, park it in the inbox.
    */
-  private routeBySimilarity(
+  private async routeBySimilarity(
     message: string,
     spaces: readonly TopicSpace[],
     now: Date,
-  ): RoutingDecision {
+  ): Promise<RoutingDecision> {
     const active = spaces.filter((s) => s.status === 'active');
 
-    const scored = active.map((space) => {
-      const relevance = this.matchingStrategy.relevanceScore(message, space);
-      const decay = this.timeDecay.decayFactor(space.lastActivityDate, now);
-      return { space, weightedScore: relevance * decay };
-    });
+    const scored = await Promise.all(
+      active.map(async (space) => {
+        const relevance = await this.matchingStrategy.relevanceScore(message, space);
+        const decay = this.timeDecay.decayFactor(space.lastActivityDate, now);
+        return { space, weightedScore: relevance * decay };
+      }),
+    );
 
     let best: { space: TopicSpace; weightedScore: number } | undefined;
     for (const candidate of scored) {
@@ -242,7 +249,7 @@ export class RoutingEngine {
       };
     }
 
-    if (this.matchingStrategy.isNewTopicWorthy(message, active)) {
+    if (await this.matchingStrategy.isNewTopicWorthy(message, active)) {
       return {
         destination: { kind: 'newTopicSpace', suggestedName: suggestNewTopicName(message) },
         confidence: 0.6,
