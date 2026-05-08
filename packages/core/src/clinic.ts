@@ -29,13 +29,13 @@ import type { RoutingCorrection } from './types/routing-correction.js';
 import type { TopicSpace, TopicStatus } from './types/topic-space.js';
 
 /**
- * Options for constructing a {@link Cha0s} instance.
+ * Options for constructing a {@link Clinic} instance.
  *
  * All fields are optional. The zero-argument default gives you a fully
  * working in-memory instance suitable for quick experiments, tests,
  * and the CLI demo.
  */
-export interface Cha0sOptions {
+export interface ClinicOptions {
   /**
    * Tuning knobs for routing, clustering, and lifecycle. Overrides
    * {@link defaultRoutingConfiguration} wherever provided.
@@ -56,7 +56,7 @@ export interface Cha0sOptions {
   readonly engineOptions?: Omit<RoutingEngineOptions, 'configuration'>;
 
   /**
-   * Clustering strategy used by {@link Cha0s.checkPackaging}. Defaults
+   * Clustering strategy used by {@link Clinic.checkPackaging}. Defaults
    * to {@link KeywordClusteringStrategy}.
    */
   readonly clusteringStrategy?: ClusteringStrategy;
@@ -101,13 +101,13 @@ export interface Cha0sOptions {
 }
 
 /**
- * Input shape accepted by {@link Cha0s.send}.
+ * Input shape accepted by {@link Clinic.send}.
  *
  * Callers may pass a fully-formed {@link Message} (with id and
  * timestamp) or a minimal `{ role, content }` object — the facade
  * fills in the missing fields.
  */
-export type Cha0sInput =
+export type ClinicInput =
   | Message
   | {
       readonly role: Message['role'];
@@ -117,7 +117,7 @@ export type Cha0sInput =
     };
 
 /**
- * Result of a single {@link Cha0s.send} call.
+ * Result of a single {@link Clinic.send} call.
  *
  * Regardless of which branch the router picked (existing space, new
  * space, inbox), the returned object tells the caller:
@@ -143,11 +143,16 @@ export type SendResult =
     };
 
 /**
- * The top-level public API of cha0s.
+ * The top-level public API of Doctor Chaos.
+ *
+ * The clinic opens its doors, triages every incoming message, and
+ * routes each one to the appropriate specialty — or lets it rest in
+ * the general practice waiting room until a clearer diagnosis emerges.
+ * Patients are not asked to self-diagnose.
  *
  * ## Design principles
  *
- * 1. **One object.** Applications hold one `Cha0s` instance per
+ * 1. **One object.** Applications hold one `Clinic` instance per
  *    user/session and talk to it through methods named like verbs
  *    (`send`, `moveMessage`) or short nouns (`spaces`, `inbox`).
  *
@@ -161,18 +166,18 @@ export type SendResult =
  *    validate inputs and wrap in try/catch where needed.
  *
  * 4. **Stateful, not eternal.** The facade keeps state in-memory. For
- *    persistence, snapshot {@link Cha0s.snapshot} and hydrate via
+ *    persistence, snapshot {@link Clinic.snapshot} and hydrate via
  *    `initialSpaces` / `initialInbox` / `correctionOptions.corrections`
  *    on restart.
  *
  * ## Example
  *
  * ```ts
- * import { Cha0s } from '@cha0s-ai/core';
+ * import { Clinic } from '@doctorchaos-ai/core';
  *
- * const cha0s = new Cha0s();
+ * const clinic = new Clinic();
  *
- * const result = await cha0s.send({
+ * const result = await clinic.send({
  *   role: 'user',
  *   content: 'Book me a flight to Kyoto next week.',
  * });
@@ -184,7 +189,7 @@ export type SendResult =
  * }
  * ```
  */
-export class Cha0s {
+export class Clinic {
   private readonly configuration: RoutingConfiguration;
   private readonly engine: RoutingEngine;
   private readonly clustering: ClusteringStrategy;
@@ -197,7 +202,7 @@ export class Cha0s {
   private spacesById: Map<Id, TopicSpace>;
   private inboxState: InboxSpace;
 
-  constructor(options: Cha0sOptions = {}) {
+  constructor(options: ClinicOptions = {}) {
     this.configuration = options.configuration ?? defaultRoutingConfiguration;
     this.idGenerator = options.idGenerator ?? defaultIdGenerator;
     this.clock = options.clock ?? (() => new Date());
@@ -244,7 +249,7 @@ export class Cha0s {
    *      space, or stash the message in the inbox as a fragment.
    *   4. Updates `lastActivityDate` on the affected space.
    */
-  async send(input: Cha0sInput): Promise<SendResult> {
+  async send(input: ClinicInput): Promise<SendResult> {
     const message = this.normaliseMessage(input);
     const now = message.timestamp;
     const activeSpaces = [...this.spacesById.values()];
@@ -470,7 +475,7 @@ export class Cha0s {
 
   // ─── Internals ────────────────────────────────────────────────────
 
-  private normaliseMessage(input: Cha0sInput): Message {
+  private normaliseMessage(input: ClinicInput): Message {
     return {
       id: input.id ?? this.idGenerator(),
       role: input.role,
@@ -543,5 +548,5 @@ let idSequence = 0;
 
 function defaultIdGenerator(): Id {
   idSequence++;
-  return `cha0s-${Date.now().toString(36)}-${idSequence}`;
+  return `clinic-${Date.now().toString(36)}-${idSequence}`;
 }

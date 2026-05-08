@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Fragment, Message } from '@cha0s-ai/core';
+import type { Fragment, Message } from '@doctorchaos-ai/core';
 import { OpenAiEmbeddingClient, type FetchLike } from './client.js';
 import { OpenAiClusteringStrategy, openaiClustering } from './clustering-strategy.js';
 

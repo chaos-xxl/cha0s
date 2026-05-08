@@ -1,34 +1,34 @@
-# @cha0s-ai/openai
+# @doctorchaos-ai/openai
 
-> OpenAI embedding adapter for cha0s. Drop-in upgrade from keyword matching to semantic routing.
+> OpenAI embedding adapter for Doctor Chaos. Drop-in upgrade from keyword matching to semantic routing.
 
 **Status**: 🚧 Alpha. Public API may change between minor releases.
 
 ## Install
 
 ```bash
-npm install @cha0s-ai/core @cha0s-ai/openai
+npm install @doctorchaos-ai/core @doctorchaos-ai/openai
 ```
 
 ## Use
 
 ```typescript
-import { Cha0s } from '@cha0s-ai/core';
-import { openaiEmbedding, openaiClustering } from '@cha0s-ai/openai';
+import { Clinic } from '@doctorchaos-ai/core';
+import { openaiEmbedding, openaiClustering } from '@doctorchaos-ai/openai';
 
 const embedding = openaiEmbedding({
   apiKey: process.env.OPENAI_API_KEY!,
   // model: 'text-embedding-3-small',  // default
 });
 
-const cha0s = new Cha0s({
+const clinic = new Clinic({
   engineOptions: { matchingStrategy: embedding },
   clusteringStrategy: openaiClustering({
     client: embedding.client, // share the vector cache
   }),
 });
 
-const result = await cha0s.send({
+const result = await clinic.send({
   role: 'user',
   content: 'pick up where we left off on the Kyoto trip',
 });
@@ -70,7 +70,7 @@ openaiEmbedding({
 ## Bring your own fetch
 
 ```typescript
-import { openaiEmbedding } from '@cha0s-ai/openai';
+import { openaiEmbedding } from '@doctorchaos-ai/openai';
 import fetchWithRetry from 'your-retry-fetcher';
 
 openaiEmbedding({

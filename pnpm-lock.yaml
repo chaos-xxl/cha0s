@@ -20,7 +20,7 @@ importers:
 
   examples/cli-demo:
     dependencies:
-      '@cha0s-ai/core':
+      '@doctorchaos-ai/core':
         specifier: workspace:*
         version: link:../../packages/core
     devDependencies:
@@ -42,7 +42,7 @@ importers:
 
   packages/openai:
     devDependencies:
-      '@cha0s-ai/core':
+      '@doctorchaos-ai/core':
         specifier: workspace:*
         version: link:../core
       tsup:

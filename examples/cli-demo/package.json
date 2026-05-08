@@ -1,12 +1,12 @@
 {
-  "name": "@cha0s-ai/cli-demo",
+  "name": "@doctorchaos-ai/cli-demo",
   "version": "0.1.0-alpha.0",
-  "description": "Interactive terminal demo showing cha0s auto-organising a conversation in real time.",
+  "description": "Interactive terminal demo showing Doctor Chaos auto-organising a conversation in real time.",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "cha0s-demo": "./dist/index.js"
+    "doctor-chaos-demo": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup",
@@ -17,7 +17,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@cha0s-ai/core": "workspace:*"
+    "@doctorchaos-ai/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

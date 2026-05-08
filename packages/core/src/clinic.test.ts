@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Cha0s } from './cha0s.js';
+import { Clinic } from './clinic.js';
 import type { TopicSpace } from './types/topic-space.js';
 
 function sequentialIds(prefix = 'id'): () => string {
@@ -25,18 +25,18 @@ function space(
   };
 }
 
-describe('Cha0s.send — routing into spaces', () => {
+describe('Clinic.send — routing into spaces', () => {
   it('routes into an existing space when keywords strongly match', async () => {
     const travel = space({
       id: 's-travel',
       name: 'Travel',
       keywords: ['travel', 'flight', 'hotel'],
     });
-    const cha0s = new Cha0s({
+    const clinic = new Clinic({
       initialSpaces: [travel],
       idGenerator: sequentialIds('m'),
     });
-    const result = await cha0s.send({
+    const result = await clinic.send({
       role: 'user',
       content: 'book a travel flight and hotel for Kyoto',
     });
@@ -54,11 +54,11 @@ describe('Cha0s.send — routing into spaces', () => {
       name: 'Travel',
       keywords: ['flight', 'hotel', 'passport', 'visa', 'kyoto'],
     });
-    const cha0s = new Cha0s({
+    const clinic = new Clinic({
       initialSpaces: [travel],
       idGenerator: sequentialIds('m'),
     });
-    const result = await cha0s.send({
+    const result = await clinic.send({
       role: 'user',
       content: "Let's begin planning the kitchen renovation budget in detail today please",
     });
@@ -71,8 +71,8 @@ describe('Cha0s.send — routing into spaces', () => {
   });
 
   it('stashes weak/trivial messages in the inbox as a new fragment', async () => {
-    const cha0s = new Cha0s({ idGenerator: sequentialIds('m') });
-    const result = await cha0s.send({
+    const clinic = new Clinic({ idGenerator: sequentialIds('m') });
+    const result = await clinic.send({
       role: 'user',
       content: "what's the weather",
     });
@@ -84,119 +84,119 @@ describe('Cha0s.send — routing into spaces', () => {
   });
 
   it('assigns ids and timestamps when the input omits them', async () => {
-    const cha0s = new Cha0s({
+    const clinic = new Clinic({
       idGenerator: sequentialIds('gen'),
       clock: () => new Date('2026-05-07T12:00:00Z'),
     });
-    const result = await cha0s.send({ role: 'user', content: 'hi' });
+    const result = await clinic.send({ role: 'user', content: 'hi' });
     expect(result.message.id).toBe('gen-1'); // first id consumed by the message
     expect(result.message.timestamp).toEqual(new Date('2026-05-07T12:00:00Z'));
   });
 
   it('provides decision.reasoning on every call', async () => {
-    const cha0s = new Cha0s({ idGenerator: sequentialIds() });
-    const result = await cha0s.send({ role: 'user', content: 'hi' });
+    const clinic = new Clinic({ idGenerator: sequentialIds() });
+    const result = await clinic.send({ role: 'user', content: 'hi' });
     expect(result.decision.reasoning.length).toBeGreaterThan(0);
   });
 });
 
-describe('Cha0s.spaces / inbox / space', () => {
+describe('Clinic.spaces / inbox / space', () => {
   it('exposes spaces filtered by status', async () => {
     const active = space({ id: 'a', name: 'A', keywords: [], status: 'active' });
     const archived = space({ id: 'b', name: 'B', keywords: [], status: 'archived' });
-    const cha0s = new Cha0s({ initialSpaces: [active, archived] });
-    expect(cha0s.spaces()).toHaveLength(2);
-    expect(cha0s.spaces({ status: 'active' })).toEqual([active]);
-    expect(cha0s.spaces({ status: ['archived'] })).toEqual([archived]);
+    const clinic = new Clinic({ initialSpaces: [active, archived] });
+    expect(clinic.spaces()).toHaveLength(2);
+    expect(clinic.spaces({ status: 'active' })).toEqual([active]);
+    expect(clinic.spaces({ status: ['archived'] })).toEqual([archived]);
   });
 
   it('looks up a single space by id', () => {
     const travel = space({ id: 't', name: 'T', keywords: [] });
-    const cha0s = new Cha0s({ initialSpaces: [travel] });
-    expect(cha0s.space('t')).toEqual(travel);
-    expect(cha0s.space('unknown')).toBeUndefined();
+    const clinic = new Clinic({ initialSpaces: [travel] });
+    expect(clinic.space('t')).toEqual(travel);
+    expect(clinic.space('unknown')).toBeUndefined();
   });
 
   it('returns the current inbox', () => {
-    const cha0s = new Cha0s();
-    expect(cha0s.inbox().fragments).toEqual([]);
+    const clinic = new Clinic();
+    expect(clinic.inbox().fragments).toEqual([]);
   });
 });
 
-describe('Cha0s.moveMessage', () => {
-  let cha0s: Cha0s;
+describe('Clinic.moveMessage', () => {
+  let clinic: Clinic;
   let messageId: string;
 
   beforeEach(async () => {
-    cha0s = new Cha0s({ idGenerator: sequentialIds('id') });
-    const res = await cha0s.send({ role: 'user', content: 'what is the weather' });
+    clinic = new Clinic({ idGenerator: sequentialIds('id') });
+    const res = await clinic.send({ role: 'user', content: 'what is the weather' });
     if (res.destination !== 'inbox') throw new Error('expected weather to land in inbox');
     messageId = res.message.id;
   });
 
   it('moves a message from inbox to a topic space', async () => {
     // Seed a target space.
-    const seed = await cha0s.send({
+    const seed = await clinic.send({
       role: 'user',
       content: 'planning a travel itinerary for Kyoto next spring please',
     });
     if (seed.destination !== 'topicSpace') throw new Error('expected a topic space');
     const targetId = seed.space.id;
 
-    const updated = await cha0s.moveMessage(messageId, targetId);
+    const updated = await clinic.moveMessage(messageId, targetId);
     expect(updated.messages.map((m) => m.id)).toContain(messageId);
-    expect(cha0s.inbox().fragments).toHaveLength(0);
+    expect(clinic.inbox().fragments).toHaveLength(0);
   });
 
   it('throws for an unknown target space', async () => {
-    await expect(cha0s.moveMessage(messageId, 'not-a-real-id')).rejects.toThrow(/unknown target/);
+    await expect(clinic.moveMessage(messageId, 'not-a-real-id')).rejects.toThrow(/unknown target/);
   });
 
   it('throws for an unknown message id', async () => {
-    const seed = await cha0s.send({
+    const seed = await clinic.send({
       role: 'user',
       content: 'planning a travel itinerary for Kyoto next spring please',
     });
     if (seed.destination !== 'topicSpace') throw new Error('expected a topic space');
-    await expect(cha0s.moveMessage('ghost-id', seed.space.id)).rejects.toThrow(/unknown message/);
+    await expect(clinic.moveMessage('ghost-id', seed.space.id)).rejects.toThrow(/unknown message/);
   });
 
   it('records a correction in the snapshot after moving', async () => {
-    const seed = await cha0s.send({
+    const seed = await clinic.send({
       role: 'user',
       content: 'planning a travel itinerary for Kyoto next spring please',
     });
     if (seed.destination !== 'topicSpace') throw new Error('expected topic space');
-    await cha0s.moveMessage(messageId, seed.space.id);
-    const snap = cha0s.snapshot();
+    await clinic.moveMessage(messageId, seed.space.id);
+    const snap = clinic.snapshot();
     expect(snap.corrections.length).toBe(1);
     expect(snap.corrections[0]!.correctedDestination).toBe(seed.space.id);
   });
 });
 
-describe('Cha0s.checkPackaging', () => {
+describe('Clinic.checkPackaging', () => {
   it('creates no new spaces when clusters are below threshold', async () => {
-    const cha0s = new Cha0s({ idGenerator: sequentialIds() });
-    await cha0s.send({ role: 'user', content: 'weather today' });
-    await cha0s.send({ role: 'user', content: 'weather tomorrow' });
-    const created = await cha0s.checkPackaging();
+    const clinic = new Clinic({ idGenerator: sequentialIds() });
+    await clinic.send({ role: 'user', content: 'weather today' });
+    await clinic.send({ role: 'user', content: 'weather tomorrow' });
+    const created = await clinic.checkPackaging();
     // default threshold is 3 fragments; only 2 inbox items here.
     expect(created).toEqual([]);
   });
 
   it('packages a dense cluster into a new topic space', async () => {
-    const cha0s = new Cha0s({ idGenerator: sequentialIds() });
+    const clinic = new Clinic({ idGenerator: sequentialIds() });
     // Three weather-trivia messages → all go to inbox, share 'weather' bigram/token.
-    await cha0s.send({ role: 'user', content: 'weather today report' });
-    await cha0s.send({ role: 'user', content: 'weather tomorrow forecast' });
-    await cha0s.send({ role: 'user', content: 'weather next week outlook' });
-    const created = await cha0s.checkPackaging();
+    await clinic.send({ role: 'user', content: 'weather today report' });
+    await clinic.send({ role: 'user', content: 'weather tomorrow forecast' });
+    await clinic.send({ role: 'user', content: 'weather next week outlook' });
+    const created = await clinic.checkPackaging();
     expect(created.length).toBeGreaterThanOrEqual(1);
-    expect(cha0s.inbox().fragments).toHaveLength(0);
+    expect(clinic.inbox().fragments).toHaveLength(0);
   });
 });
 
-describe('Cha0s.checkLifecycle', () => {
+describe('Clinic.checkLifecycle', () => {
   it('archives spaces past the inactivity threshold', async () => {
     const veryOld = space({
       id: 'stale',
@@ -205,19 +205,19 @@ describe('Cha0s.checkLifecycle', () => {
       status: 'active',
       lastActivityDate: new Date('2020-01-01'),
     });
-    const cha0s = new Cha0s({ initialSpaces: [veryOld] });
-    const changed = await cha0s.checkLifecycle();
+    const clinic = new Clinic({ initialSpaces: [veryOld] });
+    const changed = await clinic.checkLifecycle();
     expect(changed).toHaveLength(1);
     expect(changed[0]!.status).toBe('archived');
-    expect(cha0s.space('stale')!.status).toBe('archived');
+    expect(clinic.space('stale')!.status).toBe('archived');
   });
 });
 
-describe('Cha0s.snapshot', () => {
+describe('Clinic.snapshot', () => {
   it('returns the full in-memory state for persistence', async () => {
-    const cha0s = new Cha0s({ idGenerator: sequentialIds('id') });
-    await cha0s.send({ role: 'user', content: 'travel to Kyoto please' });
-    const snap = cha0s.snapshot();
+    const clinic = new Clinic({ idGenerator: sequentialIds('id') });
+    await clinic.send({ role: 'user', content: 'travel to Kyoto please' });
+    const snap = clinic.snapshot();
     expect(snap.spaces.length + snap.inbox.fragments.length).toBeGreaterThan(0);
     expect(Array.isArray(snap.corrections)).toBe(true);
   });

@@ -1,9 +1,9 @@
 /**
- * Public type surface for @cha0s-ai/core.
+ * Public type surface for @doctorchaos-ai/core.
  *
- * Every type used by downstream adapters (`@cha0s-ai/openai`,
- * `@cha0s-ai/anthropic`, ...) and by host applications is re-exported
- * here. Imports from deep paths (`'@cha0s-ai/core/types/message.js'`)
+ * Every type used by downstream adapters (`@doctorchaos-ai/openai`,
+ * `@doctorchaos-ai/anthropic`, ...) and by host applications is re-exported
+ * here. Imports from deep paths (`'@doctorchaos-ai/core/types/message.js'`)
  * are not considered part of the public API.
  */
 

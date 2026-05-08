@@ -1,17 +1,17 @@
 {
-  "name": "cha0s-workspace",
+  "name": "doctor-chaos-workspace",
   "version": "0.0.0",
   "private": true,
   "description": "The conversation organization layer for AI chat apps.",
   "author": "Chaos <chaosxinglong@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/chaos-xxl/cha0s",
+  "homepage": "https://github.com/doctorchaos-ai/doctor-chaos",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chaos-xxl/cha0s.git"
+    "url": "git+https://github.com/doctorchaos-ai/doctor-chaos.git"
   },
   "bugs": {
-    "url": "https://github.com/chaos-xxl/cha0s/issues"
+    "url": "https://github.com/doctorchaos-ai/doctor-chaos/issues"
   },
   "engines": {
     "node": ">=18",
@@ -23,7 +23,7 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "demo": "pnpm --filter @cha0s-ai/core build && pnpm --filter @cha0s-ai/cli-demo start",
+    "demo": "pnpm --filter @doctorchaos-ai/core build && pnpm --filter @doctorchaos-ai/cli-demo start",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
     "clean": "pnpm -r exec rm -rf dist node_modules .turbo"

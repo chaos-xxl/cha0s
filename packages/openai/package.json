@@ -1,10 +1,10 @@
 {
-  "name": "@cha0s-ai/openai",
+  "name": "@doctorchaos-ai/openai",
   "version": "0.1.0-alpha.0",
-  "description": "OpenAI embedding adapter for cha0s — swap keyword matching for semantic routing with one line.",
+  "description": "OpenAI embedding adapter for Doctor Chaos — swap keyword matching for semantic routing with one line.",
   "keywords": [
     "ai",
-    "cha0s",
+    "doctor-chaos",
     "openai",
     "embeddings",
     "semantic-routing",
@@ -13,14 +13,14 @@
   ],
   "author": "Chaos <chaosxinglong@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/chaos-xxl/cha0s",
+  "homepage": "https://github.com/doctorchaos-ai/doctor-chaos",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chaos-xxl/cha0s.git",
+    "url": "git+https://github.com/doctorchaos-ai/doctor-chaos.git",
     "directory": "packages/openai"
   },
   "bugs": {
-    "url": "https://github.com/chaos-xxl/cha0s/issues"
+    "url": "https://github.com/doctorchaos-ai/doctor-chaos/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -54,10 +54,10 @@
     "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "@cha0s-ai/core": "workspace:*"
+    "@doctorchaos-ai/core": "workspace:*"
   },
   "devDependencies": {
-    "@cha0s-ai/core": "workspace:*",
+    "@doctorchaos-ai/core": "workspace:*",
     "tsup": "^8.3.5",
     "vitest": "^2.1.8"
   }

@@ -1,5 +1,5 @@
 /**
- * Primitive types used across the cha0s core library.
+ * Primitive types used across the Doctor Chaos core library.
  *
  * These are the lowest-level building blocks: identifiers, roles, and
  * the intent signal enumeration. Higher-level models (Message, Fragment,
@@ -9,9 +9,10 @@
 /**
  * A universally unique identifier, encoded as a string.
  *
- * cha0s uses string IDs (as opposed to opaque objects) so they can be
- * freely serialised, compared with `===`, and used as object keys.
- * The format is not prescribed — any reasonably unique string works,
+ * Doctor Chaos uses string IDs (as opposed to opaque objects) so they
+ * can be freely serialised, compared with `===`, and used as object
+ * keys. The format is not prescribed — any reasonably unique string
+ * works,
  * including UUIDs, ULIDs, or host-provided IDs.
  */
 export type Id = string;

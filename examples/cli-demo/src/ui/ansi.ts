@@ -2,8 +2,8 @@
  * Minimal ANSI helpers for the CLI demo.
  *
  * We avoid pulling in a dependency like chalk because the demo's zero-
- * dep posture is part of the message: cha0s works offline, so should
- * its showcase.
+ * dep posture is part of the message: Doctor Chaos works offline, so
+ * should its showcase.
  */
 
 const ESC = '\u001b[';
@@ -29,7 +29,7 @@ export const color = {
   brightYellow: `${ESC}93m`,
   brightCyan: `${ESC}96m`,
 
-  // Orange-ish via 256-color palette (close to cha0s brand orange)
+  // Orange-ish via 256-color palette (Doctor Chaos brand orange)
   orange: `${ESC}38;5;208m`,
 } as const;
 

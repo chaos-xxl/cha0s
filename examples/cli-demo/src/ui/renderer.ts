@@ -1,4 +1,4 @@
-import type { Cha0s, TopicSpace } from '@cha0s-ai/core';
+import type { Clinic, TopicSpace } from '@doctorchaos-ai/core';
 import { clearScreen, color, paint } from './ansi.js';
 
 /**
@@ -7,11 +7,11 @@ import { clearScreen, color, paint } from './ansi.js';
  *
  * The focused space is simply the most recently touched one — the demo
  * is linear, not multi-window. A real host application would render its
- * own UI; this one exists purely to make cha0s's decisions visible.
+ * own UI; this one exists purely to make the clinic's decisions visible.
  */
 
 export interface RenderState {
-  readonly cha0s: Cha0s;
+  readonly clinic: Clinic;
   readonly focusedSpaceId: string | null;
   readonly lastReasoning: string | null;
 }
@@ -73,9 +73,9 @@ function buildLeftPane(state: RenderState): string[] {
   lines.push(paint(' Topic spaces', color.bold, color.orange));
   lines.push('');
 
-  const active = state.cha0s.spaces({ status: 'active' });
-  const dormant = state.cha0s.spaces({ status: 'dormant' });
-  const archived = state.cha0s.spaces({ status: 'archived' });
+  const active = state.clinic.spaces({ status: 'active' });
+  const dormant = state.clinic.spaces({ status: 'dormant' });
+  const archived = state.clinic.spaces({ status: 'archived' });
 
   if (active.length === 0 && dormant.length === 0 && archived.length === 0) {
     lines.push(paint(' (no spaces yet)', color.dim));
@@ -92,7 +92,7 @@ function buildLeftPane(state: RenderState): string[] {
   }
 
   lines.push('');
-  const inbox = state.cha0s.inbox();
+  const inbox = state.clinic.inbox();
   const inboxLine = ` · inbox (${inbox.fragments.length} frag / ${inbox.totalMessageCount} msg)`;
   lines.push(paint(inboxLine, state.focusedSpaceId === null ? color.orange : color.cyan));
   return lines;
@@ -108,7 +108,7 @@ function formatSpaceRow(space: TopicSpace, focused: boolean, base: string): stri
 
 function buildRightPane(state: RenderState, width: number): string[] {
   const lines: string[] = [];
-  const focused = state.focusedSpaceId ? state.cha0s.space(state.focusedSpaceId) : null;
+  const focused = state.focusedSpaceId ? state.clinic.space(state.focusedSpaceId) : null;
 
   if (focused) {
     lines.push(paint(` ${focused.name}`, color.bold, color.orange));
@@ -126,7 +126,7 @@ function buildRightPane(state: RenderState, width: number): string[] {
   } else {
     lines.push(paint(' Inbox', color.bold, color.orange));
     lines.push('');
-    const fragments = state.cha0s.inbox().fragments.slice(-6);
+    const fragments = state.clinic.inbox().fragments.slice(-6);
     if (fragments.length === 0) {
       lines.push(paint(' (inbox is empty)', color.dim));
     }
