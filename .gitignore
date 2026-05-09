@@ -64,3 +64,7 @@ Thumbs.db
 .local/
 tmp/
 temp/
+
+# Temporary files used when passing multi-line commit messages via `git commit -F`
+.commit-msg.tmp
+*.commit-msg.tmp
