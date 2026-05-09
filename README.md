@@ -79,6 +79,35 @@ npm install @doctorchaos-ai/core
 pnpm add @doctorchaos-ai/core
 ```
 
+## 三档路由策略
+
+Doctor Chaos 默认就能跑,但准确率取决于你给它的"眼睛"。从上到下是三档:
+
+| 档                   | 触发条件                                              | 准确率 | 成本          |
+| -------------------- | ----------------------------------------------------- | ------ | ------------- |
+| **LLM 路由**         | 你传了 `llm` function                                 | 95-99% | 每条 ~$0.001  |
+| **Embedding 路由**   | 你传了 `embed` function,或环境变量有 `OPENAI_API_KEY` | 90-95% | 每条 ~$0.0001 |
+| **关键词匹配**(默认) | 零配置                                                | 60-75% | 免费          |
+
+**三档的写法对比:**
+
+```typescript
+// 零配置——没配 key 就是关键词匹配,有 OPENAI_API_KEY 自动升级到 embedding
+const clinic = new Clinic();
+
+// 显式 embedding——任何 OpenAI 兼容端点
+import { openaiEmbed } from '@doctorchaos-ai/openai';
+const clinic = new Clinic({ embed: openaiEmbed({ apiKey }) });
+
+// LLM 路由——任何 chat 模型都行(OpenAI / Anthropic / DeepSeek / 豆包 / Kimi ...)
+import { openaiLLM } from '@doctorchaos-ai/openai';
+const clinic = new Clinic({ llm: openaiLLM({ apiKey }) });
+```
+
+如果你用的是 Anthropic / DeepSeek / 豆包这些没有 embedding 端点的厂商,**用 LLM 路由**——它对任何 chat-completion API 都能工作,不需要额外注册 embedding 服务。
+
+---
+
 ## 三十秒上手
 
 ```typescript
@@ -235,6 +264,41 @@ npm install @doctorchaos-ai/core
 # or
 pnpm add @doctorchaos-ai/core
 ```
+
+## Three routing tiers
+
+Doctor Chaos works out of the box, but accuracy tracks the "eyes"
+you give it. Top to bottom:
+
+| Tier                           | Trigger                                                     | Accuracy | Cost               |
+| ------------------------------ | ----------------------------------------------------------- | -------- | ------------------ |
+| **LLM routing**                | You pass an `llm` function                                  | 95–99%   | ~$0.001 / message  |
+| **Embedding**                  | You pass an `embed` function, or `OPENAI_API_KEY` is in env | 90–95%   | ~$0.0001 / message |
+| **Keyword matching** (default) | Zero config                                                 | 60–75%   | free               |
+
+**Three tiers in code:**
+
+```typescript
+// Zero config — keyword matching if no key, auto-upgrades to
+// embedding when OPENAI_API_KEY is in your environment.
+const clinic = new Clinic();
+
+// Explicit embedding — any OpenAI-compatible endpoint.
+import { openaiEmbed } from '@doctorchaos-ai/openai';
+const clinic = new Clinic({ embed: openaiEmbed({ apiKey }) });
+
+// LLM routing — works with any chat model
+// (OpenAI / Anthropic / DeepSeek / Doubao / Kimi / ...).
+import { openaiLLM } from '@doctorchaos-ai/openai';
+const clinic = new Clinic({ llm: openaiLLM({ apiKey }) });
+```
+
+If you use a provider without an embeddings endpoint (Anthropic,
+DeepSeek, Doubao, Kimi, MiniMax, Qwen, ...), **use LLM routing**.
+It works against any chat-completion API without a separate
+embedding subscription.
+
+---
 
 ## Thirty-second tour
 

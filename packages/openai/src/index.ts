@@ -36,3 +36,7 @@ export { OpenAiClusteringStrategy, openaiClustering } from './clustering-strateg
 export type { OpenAiClusteringStrategyOptions } from './clustering-strategy.js';
 
 export { averageVectors, cosineSimilarity, toRoutingScore } from './math.js';
+
+// High-level, functional API — the recommended entry points.
+export { openaiEmbed, openaiLLM } from './functional.js';
+export type { OpenAiEmbedOptions, OpenAiLLMOptions } from './functional.js';

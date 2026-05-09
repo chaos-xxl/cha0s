@@ -18,7 +18,10 @@ import {
   type RoutingEngineOptions,
 } from './routing/routing-engine.js';
 import { KeywordClusteringStrategy } from './strategies/keyword-clustering-strategy.js';
-import type { ClusteringStrategy } from './strategies/interfaces.js';
+import type { ClusteringStrategy, RoutingStrategy } from './strategies/interfaces.js';
+import type { EmbedFunction, LLMFunction } from './strategies/llm-types.js';
+import { LLMRoutingStrategy } from './strategies/llm-routing-strategy.js';
+import { EmbedRoutingStrategy } from './strategies/embed-routing-strategy.js';
 import type { Fragment } from './types/fragment.js';
 import type { FragmentCluster } from './types/fragment-cluster.js';
 import type { InboxSpace } from './types/inbox-space.js';
@@ -54,6 +57,48 @@ export interface ClinicOptions {
    * `engine` is provided directly.
    */
   readonly engineOptions?: Omit<RoutingEngineOptions, 'configuration'>;
+
+  /**
+   * High-level convenience: hand Doctor Chaos a chat-completion
+   * function and it will route every incoming message through that
+   * LLM. Takes precedence over `embed` and over automatic OpenAI
+   * detection.
+   *
+   * ```ts
+   * import { openaiLLM } from '@doctorchaos-ai/openai';
+   *
+   * const clinic = new Clinic({ llm: openaiLLM({ apiKey }) });
+   * ```
+   *
+   * Accuracy is highest with this strategy (95–99% in typical
+   * scenarios) at the cost of a network call per routed message.
+   * Suitable for any provider that exposes a chat-completion API —
+   * OpenAI, Anthropic, DeepSeek, MiniMax, Kimi, 智谱, 豆包, Qwen, etc.
+   */
+  readonly llm?: LLMFunction;
+
+  /**
+   * High-level convenience: hand Doctor Chaos an embedding function
+   * and it will route by embedding similarity. Takes precedence over
+   * automatic OpenAI detection, but yields to an explicit `llm`.
+   *
+   * Adapter packages (`@doctorchaos-ai/openai`) export pre-built
+   * implementations; you can also write your own in a few lines for
+   * custom providers or local models.
+   */
+  readonly embed?: EmbedFunction;
+
+  /**
+   * If true (default), and no explicit `llm` / `embed` / matching
+   * strategy is provided, Doctor Chaos checks `process.env` for
+   * `OPENAI_API_KEY` (optionally alongside `OPENAI_BASE_URL`) and
+   * auto-wires an OpenAI-backed embedding routing strategy using
+   * `fetch`.
+   *
+   * Set to `false` to skip the sniff and always fall back to the
+   * keyword strategy.
+   */
+  readonly autoDetectOpenAI?: boolean;
 
   /**
    * Clustering strategy used by {@link Clinic.checkPackaging}. Defaults
@@ -199,6 +244,16 @@ export class Clinic {
   private readonly idGenerator: () => Id;
   private readonly clock: () => Date;
 
+  /**
+   * The LLM routing strategy, kept around so `send()` can prime it
+   * with the current space list before the engine starts calling
+   * `relevanceScore` one space at a time. Non-null only when the user
+   * configured `llm`.
+   *
+   * @internal
+   */
+  private readonly llmStrategy: LLMRoutingStrategy | undefined;
+
   private spacesById: Map<Id, TopicSpace>;
   private inboxState: InboxSpace;
 
@@ -207,10 +262,24 @@ export class Clinic {
     this.idGenerator = options.idGenerator ?? defaultIdGenerator;
     this.clock = options.clock ?? (() => new Date());
 
+    // Work out the matching strategy by priority:
+    //   1. Explicit engine overrides everything.
+    //   2. engineOptions.matchingStrategy — power user path.
+    //   3. options.llm — LLM-backed routing (highest quality).
+    //   4. options.embed — embedding-backed routing (still explicit).
+    //   5. Auto-detect OPENAI_API_KEY — zero-config upgrade path.
+    //   6. Fall through to the routing engine's default
+    //      (KeywordMatchingStrategy).
+    const resolved = resolveMatchingStrategy(options);
+    this.llmStrategy = resolved.llmStrategy;
+
     this.engine =
       options.engine ??
       new RoutingEngine({
         ...(options.engineOptions ?? {}),
+        ...(resolved.matchingStrategy !== undefined
+          ? { matchingStrategy: resolved.matchingStrategy }
+          : {}),
         configuration: this.configuration,
       });
 
@@ -253,6 +322,17 @@ export class Clinic {
     const message = this.normaliseMessage(input);
     const now = message.timestamp;
     const activeSpaces = [...this.spacesById.values()];
+
+    // If an LLM-backed strategy is in play, prime its single-slot
+    // memo with the full space list before the engine starts calling
+    // `relevanceScore(message, space)` once per space. Without this,
+    // the engine would hit the LLM N times (once per space, seeing
+    // only that one space each time) instead of once with full
+    // context.
+    if (this.llmStrategy !== undefined) {
+      await this.llmStrategy.primeForMessage(message.content, activeSpaces);
+    }
+
     const decision = await this.engine.route(
       message.content,
       activeSpaces,
@@ -549,4 +629,143 @@ let idSequence = 0;
 function defaultIdGenerator(): Id {
   idSequence++;
   return `clinic-${Date.now().toString(36)}-${idSequence}`;
+}
+
+// ─── Strategy resolution ─────────────────────────────────────────────
+
+/**
+ * Resolve which {@link RoutingStrategy} the routing engine should use,
+ * based on the user's options.
+ *
+ * Priority (highest to lowest):
+ *   1. `engineOptions.matchingStrategy` — power-user escape hatch.
+ *   2. `options.llm` — LLM-backed routing (highest quality).
+ *   3. `options.embed` — user-provided embedding function.
+ *   4. Auto-detected `OPENAI_API_KEY` — zero-config upgrade.
+ *   5. `undefined` — let the engine pick its default
+ *      ({@link KeywordMatchingStrategy}).
+ *
+ * Returns the resolved strategy (or `undefined`) plus, in the LLM
+ * case, a handle to the strategy so the facade can prime it before
+ * each routing cycle.
+ *
+ * @internal
+ */
+function resolveMatchingStrategy(options: ClinicOptions): {
+  matchingStrategy: RoutingStrategy | undefined;
+  llmStrategy: LLMRoutingStrategy | undefined;
+} {
+  // 1. Explicit matchingStrategy in engineOptions wins.
+  const explicit = options.engineOptions?.matchingStrategy;
+  if (explicit) {
+    const llmStrategy = explicit instanceof LLMRoutingStrategy ? explicit : undefined;
+    return { matchingStrategy: explicit, llmStrategy };
+  }
+
+  // 2. High-level `llm` option.
+  if (options.llm) {
+    const llmStrategy = new LLMRoutingStrategy({ llm: options.llm });
+    return { matchingStrategy: llmStrategy, llmStrategy };
+  }
+
+  // 3. High-level `embed` option.
+  if (options.embed) {
+    const embedStrategy = new EmbedRoutingStrategy({ embed: options.embed });
+    return { matchingStrategy: embedStrategy, llmStrategy: undefined };
+  }
+
+  // 4. Auto-detect OpenAI.
+  if (options.autoDetectOpenAI !== false) {
+    const sniffed = sniffOpenAIEmbed();
+    if (sniffed) {
+      const embedStrategy = new EmbedRoutingStrategy({ embed: sniffed });
+      return { matchingStrategy: embedStrategy, llmStrategy: undefined };
+    }
+  }
+
+  // 5. Let the engine pick its default.
+  return { matchingStrategy: undefined, llmStrategy: undefined };
+}
+
+/**
+ * If `process.env.OPENAI_API_KEY` is present in a Node-like
+ * environment, return a minimal embedding function wired to the
+ * OpenAI-compatible embeddings endpoint. Otherwise return
+ * `undefined`.
+ *
+ * We deliberately keep this tiny and dependency-free:
+ *
+ *   - Uses the global `fetch` (Node 18+, Bun, Deno, browsers, workers).
+ *   - Model: `text-embedding-3-small` (OpenAI's cheap, fast default).
+ *   - Base URL: `OPENAI_BASE_URL` if set, else `https://api.openai.com/v1`.
+ *   - No caching, no retries, no rate limiting — those live in the
+ *     dedicated `@doctorchaos-ai/openai` adapter for users who want
+ *     them.
+ *
+ * This lets "I have an OpenAI key exported; just make it work" users
+ * get semantic routing with zero config. Everyone else gets the
+ * keyword-matching fallback.
+ *
+ * @internal
+ */
+function sniffOpenAIEmbed(): EmbedFunction | undefined {
+  const env = getProcessEnv();
+  if (!env) return undefined;
+
+  const apiKey = env.OPENAI_API_KEY;
+  if (!apiKey || apiKey.length === 0) return undefined;
+
+  const baseUrl = (env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1').replace(/\/$/, '');
+  const model = env.OPENAI_EMBED_MODEL ?? 'text-embedding-3-small';
+
+  const fetchFn = getGlobalFetch();
+  if (!fetchFn) return undefined;
+
+  return async (texts) => {
+    const response = await fetchFn(`${baseUrl}/embeddings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model, input: texts }),
+    });
+    if (!response.ok) {
+      throw new Error(`Doctor Chaos: OpenAI embeddings request failed (${response.status})`);
+    }
+    const body = (await response.json()) as {
+      data: Array<{ embedding: number[]; index: number }>;
+    };
+    // OpenAI returns results in the same order as inputs, but we
+    // sort defensively in case a proxy reorders them.
+    const sorted = [...body.data].sort((a, b) => a.index - b.index);
+    return sorted.map((item) => item.embedding);
+  };
+}
+
+/**
+ * Read `process.env` safely — `process` may not exist in browsers.
+ *
+ * @internal
+ */
+function getProcessEnv(): Record<string, string | undefined> | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const proc = (globalThis as any).process;
+  if (proc && typeof proc === 'object' && proc.env && typeof proc.env === 'object') {
+    return proc.env as Record<string, string | undefined>;
+  }
+  return undefined;
+}
+
+/**
+ * Return the global `fetch` implementation, or `undefined` if the
+ * environment does not provide one. Node 18+, Bun, Deno, modern
+ * browsers, and Cloudflare Workers all ship with it.
+ *
+ * @internal
+ */
+function getGlobalFetch(): typeof fetch | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = globalThis as any;
+  return typeof g.fetch === 'function' ? (g.fetch as typeof fetch) : undefined;
 }
