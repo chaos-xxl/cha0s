@@ -13,7 +13,7 @@ _Doctor Chaos will see you now._
 
 </div>
 
-<!-- README_zh.md coming soon -->
+🇨🇳 [中文文档](./README_zh.md)
 
 ---
 
