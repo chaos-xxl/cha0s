@@ -78,14 +78,42 @@ if signals are ambiguous. Common patterns:
 | Raw Discord             | `discord.js`                          | `client.on('messageCreate', ...)` |
 | Custom                  | None of the above                     | Ask the user directly             |
 
-### Step 2 — Ask the user which LLM provider
+### Step 2 — Detect which LLM provider is already in use
 
-If `package.json` or `.env` already implies a provider (e.g., there's
-an `openai` dep, or a `DEEPSEEK_API_KEY` env var), propose it. Otherwise
-ask:
+**Always try automatic detection first — do not ask the user unless
+detection fails.**
 
-> "Which LLM are you using? OpenAI, Anthropic Claude, DeepSeek, Kimi,
-> Zhipu, Qwen, MiniMax, or Doubao?"
+Check in this order, stop at the first positive signal:
+
+1. **`package.json` dependencies** — look for one of:
+   - `openai` → OpenAI
+   - `@anthropic-ai/sdk` → Anthropic Claude
+   - Anything imported from another provider (DeepSeek, Kimi, Zhipu, Qwen, MiniMax, Doubao) — check the actual client code to confirm
+
+2. **`.env` / `.env.local` / `.env.example`** — look for key names:
+   - `OPENAI_API_KEY` → OpenAI
+   - `ANTHROPIC_API_KEY` → Anthropic
+   - `DEEPSEEK_API_KEY` → DeepSeek
+   - `MOONSHOT_API_KEY` → Kimi
+   - `ZHIPU_API_KEY` → Zhipu
+   - `DASHSCOPE_API_KEY` → Qwen
+   - `MINIMAX_API_KEY` → MiniMax
+   - `ARK_API_KEY` → Doubao (Volcengine Ark)
+
+3. **Existing LLM calls in the code** — grep for `openai.chat`,
+   `anthropic.messages`, raw `fetch` to any of the above providers'
+   base URLs.
+
+4. **Framework-level config** — for OpenClaw / Koishi / etc., check
+   their config files (`openclaw.config.*`, `koishi.yml`, etc.) for
+   LLM provider settings.
+
+Only if all four fail: ask the user "Which LLM are you using? OpenAI,
+Anthropic Claude, DeepSeek, Kimi, Zhipu, Qwen, MiniMax, or Doubao?"
+
+> **Principle**: the user has already wired up their LLM. Your job is
+> to match that existing wiring, not to ask them to repeat information
+> their project already contains.
 
 ### Step 3 — Install the two required packages
 
