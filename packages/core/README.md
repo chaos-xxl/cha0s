@@ -33,15 +33,26 @@ Think of it as the missing layer between LLMs and chat UIs:
 | [Mem0](https://github.com/mem0ai/mem0)                 | Remember user facts and preferences  |
 | **Doctor Chaos**                                       | **Organize the conversation itself** |
 
-## Roadmap
+## What's included today
 
-The real API is being ported from a Swift reference implementation. Upcoming modules:
+The library has finished the Swift → TypeScript port and ships a working alpha:
 
 - Message routing with time-decay confidence weighting
 - Topic-space emergence from conversation fragments
 - Fragment clustering & packaging
-- Pluggable LLM and embedding adapters (`@doctorchaos-ai/openai`, `@doctorchaos-ai/anthropic`, ...)
-- Pluggable storage adapters (`@doctorchaos-ai/memory`, `@doctorchaos-ai/indexeddb`, ...)
+- Lifecycle management (archive / reactivate / merge / rename)
+- Correction learning from user overrides
+- Pluggable strategy interfaces for embedding-backed routing and clustering
+
+## Available adapters
+
+- [`@doctorchaos-ai/openai`](https://www.npmjs.com/package/@doctorchaos-ai/openai) — OpenAI embedding + semantic clustering
+
+## Planned
+
+- `@doctorchaos-ai/anthropic` — Anthropic-backed adapter
+- `@doctorchaos-ai/react` — headless React hooks
+- `@doctorchaos-ai/sqlite`, `@doctorchaos-ai/indexeddb` — storage adapters
 
 ## Links
 
