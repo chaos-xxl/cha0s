@@ -1,6 +1,6 @@
 {
   "name": "@doctorchaos-ai/openai",
-  "version": "0.1.0-alpha.0",
+  "version": "0.2.0-alpha.0",
   "description": "OpenAI embedding adapter for Doctor Chaos — swap keyword matching for semantic routing with one line.",
   "keywords": [
     "ai",

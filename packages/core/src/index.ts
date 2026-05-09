@@ -15,7 +15,7 @@
  * Kept in sync with package.json. Exposed so host apps can detect the
  * installed version at runtime (useful in bug reports and telemetry).
  */
-export const VERSION = '0.1.0-alpha.0' as const;
+export const VERSION = '0.2.0-alpha.0' as const;
 
 /**
  * Lifecycle status of the library.

@@ -1,6 +1,6 @@
 {
   "name": "@doctorchaos-ai/core",
-  "version": "0.1.0-alpha.0",
+  "version": "0.2.0-alpha.0",
   "description": "Doctor Chaos — the conversation organization layer for AI chat apps. Routing, clustering, and lifecycle for self-organising conversations.",
   "keywords": [
     "ai",
