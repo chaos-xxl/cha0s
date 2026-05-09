@@ -8,7 +8,7 @@ _Doctor Chaos will see you now._
 
 [![npm](https://img.shields.io/npm/v/@doctorchaos-ai/core?color=%23ff7a00)](https://www.npmjs.com/package/@doctorchaos-ai/core)
 [![CI](https://github.com/doctorchaos-ai/doctor-chaos/actions/workflows/ci.yml/badge.svg)](https://github.com/doctorchaos-ai/doctor-chaos/actions/workflows/ci.yml)
-[![license](https://img.shields.io/github/license/doctorchaos-ai/doctor-chaos?color=%23ff7a00)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-%23ff7a00)](./LICENSE)
 [![stage](https://img.shields.io/badge/stage-alpha-orange)](./README.md)
 
 </div>
