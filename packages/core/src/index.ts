@@ -27,6 +27,7 @@ export const VERSION = '0.1.0-alpha.0' as const;
 export const STATUS = 'alpha' as const;
 
 export * from './clinic.js';
+export * from './adapters/index.js';
 export * from './config/index.js';
 export * from './keywords/index.js';
 export * from './learning/index.js';

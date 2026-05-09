@@ -46,11 +46,17 @@ The library has finished the Swift → TypeScript port and ships a working alpha
 
 ## Available adapters
 
-- [`@doctorchaos-ai/openai`](https://www.npmjs.com/package/@doctorchaos-ai/openai) — OpenAI embedding + semantic clustering
+- [`@doctorchaos-ai/openai`](https://www.npmjs.com/package/@doctorchaos-ai/openai) — OpenAI embedding + chat completion (works with any OpenAI-compatible endpoint)
+- [`@doctorchaos-ai/anthropic`](https://www.npmjs.com/package/@doctorchaos-ai/anthropic) — Claude chat completion
+- [`@doctorchaos-ai/deepseek`](https://www.npmjs.com/package/@doctorchaos-ai/deepseek) — DeepSeek chat completion
+- [`@doctorchaos-ai/kimi`](https://www.npmjs.com/package/@doctorchaos-ai/kimi) — Moonshot Kimi chat completion
+- [`@doctorchaos-ai/zhipu`](https://www.npmjs.com/package/@doctorchaos-ai/zhipu) — Zhipu GLM chat completion
+- [`@doctorchaos-ai/qwen`](https://www.npmjs.com/package/@doctorchaos-ai/qwen) — Alibaba Qwen chat completion
+- [`@doctorchaos-ai/minimax`](https://www.npmjs.com/package/@doctorchaos-ai/minimax) — MiniMax chat completion
+- [`@doctorchaos-ai/doubao`](https://www.npmjs.com/package/@doctorchaos-ai/doubao) — Doubao (Volcengine Ark) chat completion
 
 ## Planned
 
-- `@doctorchaos-ai/anthropic` — Anthropic-backed adapter
 - `@doctorchaos-ai/react` — headless React hooks
 - `@doctorchaos-ai/sqlite`, `@doctorchaos-ai/indexeddb` — storage adapters
 
