@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Doctor Chaos">
+  <title>Doctor Chaos</title>
+
+  <!-- Square logo with safe-zone padding for:
+       - GitHub organization avatar
+       - GitHub social preview
+       - npm org page
+       - X/Twitter avatar
+  -->
+
+  <!-- Connection lines -->
+  <line x1="256" y1="180" x2="256" y2="256" stroke="#FF7A00" stroke-width="12" stroke-linecap="round"/>
+  <line x1="128" y1="256" x2="384" y2="256" stroke="#FF7A00" stroke-width="12" stroke-linecap="round"/>
+  <line x1="128" y1="256" x2="128" y2="352" stroke="#FF7A00" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="256" y2="352" stroke="#FF7A00" stroke-width="12" stroke-linecap="round"/>
+  <line x1="384" y1="256" x2="384" y2="352" stroke="#FF7A00" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Root node with medical cross -->
+  <circle cx="256" cy="140" r="55" fill="#FF7A00"/>
+  <rect x="252" y="116" width="8" height="48" fill="#FFFFFF" rx="2"/>
+  <rect x="232" y="136" width="48" height="8" fill="#FFFFFF" rx="2"/>
+
+  <!-- Left child: concentric -->
+  <circle cx="128" cy="388" r="40" fill="none" stroke="#FF7A00" stroke-width="10"/>
+  <circle cx="128" cy="388" r="14" fill="#FF7A00"/>
+
+  <!-- Center child: solid -->
+  <circle cx="256" cy="388" r="40" fill="#FF7A00"/>
+
+  <!-- Right child: ring -->
+  <circle cx="384" cy="388" r="40" fill="none" stroke="#FF7A00" stroke-width="10"/>
+</svg>

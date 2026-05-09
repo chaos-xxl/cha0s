@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 240" width="300" height="240" role="img" aria-label="Doctor Chaos logo">
+  <title>Doctor Chaos</title>
+  <desc>A triage routing tree: one front-desk root (solid with medical cross) branches into three destinations — existing topic space (concentric), inbox (solid), and new topic space (ring).</desc>
+
+  <!-- Connection lines: L-shaped bus topology (root → trunk → horizontal → three drops). -->
+  <!-- Trunk from root down to the horizontal bar -->
+  <line x1="150" y1="80"  x2="150" y2="120" stroke="#FF7A00" stroke-width="4" stroke-linecap="round"/>
+  <!-- Horizontal bar -->
+  <line x1="60"  y1="120" x2="240" y2="120" stroke="#FF7A00" stroke-width="4" stroke-linecap="round"/>
+  <!-- Three vertical drops to children -->
+  <line x1="60"  y1="120" x2="60"  y2="180" stroke="#FF7A00" stroke-width="4" stroke-linecap="round"/>
+  <line x1="150" y1="120" x2="150" y2="180" stroke="#FF7A00" stroke-width="4" stroke-linecap="round"/>
+  <line x1="240" y1="120" x2="240" y2="180" stroke="#FF7A00" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Root node: solid circle with an embedded medical cross.
+       The cross reads as "triage decision + clinic" — two meanings in one mark. -->
+  <g>
+    <circle cx="150" cy="50" r="30" fill="#FF7A00"/>
+    <!-- Medical cross, white, centered inside the root node -->
+    <rect x="147.5" y="38" width="5" height="24" fill="#FFFFFF" rx="1"/>
+    <rect x="138"   y="47.5" width="24" height="5" fill="#FFFFFF" rx="1"/>
+  </g>
+
+  <!-- Left child: concentric circles = "existing topic space, has content inside" -->
+  <g>
+    <circle cx="60" cy="200" r="22" fill="none" stroke="#FF7A00" stroke-width="5"/>
+    <circle cx="60" cy="200" r="8"  fill="#FF7A00"/>
+  </g>
+
+  <!-- Center child: solid circle = "inbox / general practice, an undifferentiated bucket" -->
+  <circle cx="150" cy="200" r="22" fill="#FF7A00"/>
+
+  <!-- Right child: ring only = "new topic space, just born, no content yet" -->
+  <circle cx="240" cy="200" r="22" fill="none" stroke="#FF7A00" stroke-width="5"/>
+</svg>
