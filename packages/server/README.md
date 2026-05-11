@@ -20,11 +20,23 @@ doctor-chaos-server start
 
 ```
 doctor-chaos-server start [--port N] [--host H] [--snapshot PATH]
+                          [--routing-mode auto|llm|embedding|keyword]
 ```
 
 - `--port N`：监听端口（默认 `18790`，env: `DOCTOR_CHAOS_PORT`）
 - `--host H`：绑定主机（默认 `127.0.0.1`，loopback）
 - `--snapshot PATH`：快照文件路径（默认 `~/.doctorchaos/tenants/default/snapshot.json`）
+- `--routing-mode M`：路由档位（默认 `auto`）
+  - `auto` —— 有 `OPENAI_API_KEY` 走 LLM；只有嵌入 key 走 embedding；都没有才降级 keyword
+  - `llm` —— 强制 LLM 直接路由（质量最好，每条消息一次 API 调用）
+  - `embedding` —— 强制嵌入相似度（便宜，质量不错）
+  - `keyword` —— 强制关键词匹配（零依赖兜底）
+
+环境变量（启动时读）：
+
+- `OPENAI_API_KEY` —— 解锁 LLM / embedding 档位
+- `OPENAI_BASE_URL` —— 可选，默认 `https://api.openai.com/v1`，支持任何 OpenAI 兼容 API
+- `OPENAI_MODEL` —— 可选，默认 `gpt-4o-mini`（只影响 LLM 档位）
 
 优雅停机：`SIGINT` / `SIGTERM`，默认 5 秒 grace。
 

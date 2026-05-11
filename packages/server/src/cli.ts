@@ -14,6 +14,7 @@
 
 import { VERSION } from './version.js';
 import { startServer } from './server.js';
+import type { RoutingMode } from './routing-mode.js';
 
 const DEFAULT_PORT = 18790;
 
@@ -22,7 +23,10 @@ interface CliArgs {
   readonly port: number;
   readonly host: string;
   readonly snapshotPath: string | undefined;
+  readonly routingMode: RoutingMode;
 }
+
+const VALID_ROUTING_MODES: readonly RoutingMode[] = ['auto', 'llm', 'embedding', 'keyword'];
 
 function printHelp(): void {
   // eslint-disable-next-line no-console
@@ -32,13 +36,26 @@ function printHelp(): void {
       '',
       'Usage:',
       '  doctor-chaos-server start [--port N] [--host H] [--snapshot PATH]',
+      '                            [--routing-mode auto|llm|embedding|keyword]',
       '  doctor-chaos-server --version',
       '  doctor-chaos-server --help',
       '',
       'Options:',
-      '  --port N        TCP port to listen on (default: 18790, env: DOCTOR_CHAOS_PORT)',
-      '  --host H        Hostname to bind (default: 127.0.0.1, loopback only)',
-      '  --snapshot PATH Path to the snapshot file (default: ~/.doctorchaos/tenants/default/snapshot.json)',
+      '  --port N            TCP port to listen on (default: 18790, env: DOCTOR_CHAOS_PORT)',
+      '  --host H            Hostname to bind (default: 127.0.0.1, loopback only)',
+      '  --snapshot PATH     Path to the snapshot file (default: ~/.doctorchaos/tenants/default/snapshot.json)',
+      '  --routing-mode M    Routing tier (default: auto).',
+      '                      auto      — LLM if OPENAI_API_KEY is present,',
+      '                                  else embedding, else keyword.',
+      '                      llm       — force LLM direct routing (best quality, one API call per message).',
+      '                      embedding — force embedding similarity (cheap, decent quality).',
+      '                      keyword   — force keyword matcher (zero-dep fallback).',
+      '',
+      'Environment variables honoured at start:',
+      '  DOCTOR_CHAOS_PORT   Overridden by --port.',
+      '  OPENAI_API_KEY      Enables LLM / embedding tiers.',
+      '  OPENAI_BASE_URL     Optional; default https://api.openai.com/v1.',
+      '  OPENAI_MODEL        Optional; default gpt-4o-mini (LLM tier only).',
       '',
       'This is the Doctor Chaos HTTP daemon. It listens on localhost by',
       'design. For the full list of endpoints see the package README.',
@@ -56,6 +73,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
       port: DEFAULT_PORT,
       host: '127.0.0.1',
       snapshotPath: undefined,
+      routingMode: 'auto',
     };
   }
 
@@ -65,6 +83,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
       port: DEFAULT_PORT,
       host: '127.0.0.1',
       snapshotPath: undefined,
+      routingMode: 'auto',
     };
   }
 
@@ -84,6 +103,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
   }
   let host = '127.0.0.1';
   let snapshotPath: string | undefined = undefined;
+  let routingMode: RoutingMode = 'auto';
 
   for (let i = 1; i < args.length; i++) {
     const flag = args[i];
@@ -104,6 +124,15 @@ function parseArgs(argv: readonly string[]): CliArgs {
       if (value === undefined) throw new Error("'--snapshot' requires a value.");
       snapshotPath = value;
       i++;
+    } else if (flag === '--routing-mode') {
+      if (value === undefined) throw new Error("'--routing-mode' requires a value.");
+      if (!VALID_ROUTING_MODES.includes(value as RoutingMode)) {
+        throw new Error(
+          `'--routing-mode' must be one of ${VALID_ROUTING_MODES.join(', ')}; got '${value}'.`,
+        );
+      }
+      routingMode = value as RoutingMode;
+      i++;
     } else {
       throw new Error(
         `Unknown flag: '${flag}'. Run 'doctor-chaos-server --help' for usage.`,
@@ -111,13 +140,14 @@ function parseArgs(argv: readonly string[]): CliArgs {
     }
   }
 
-  return { command: 'start', port, host, snapshotPath };
+  return { command: 'start', port, host, snapshotPath, routingMode };
 }
 
 async function runStart(args: CliArgs): Promise<void> {
   const server = await startServer({
     port: args.port,
     host: args.host,
+    routingMode: args.routingMode,
     ...(args.snapshotPath !== undefined ? { snapshotPath: args.snapshotPath } : {}),
   });
 

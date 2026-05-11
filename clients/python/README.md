@@ -15,6 +15,10 @@ Python 客户端 + Hermes `ContextEngine` 插件，对接 `@doctorchaos-ai/serve
 
 ## 装起来
 
+**最简单的方式：把 `INSTALL_VIA_AGENT.md` 里的那段提示词丢给你的 Hermes / OpenClaw / Claude Desktop**。它会自己帮你跑完下面这些步骤，遇到环境问题会停下来问你。
+
+手动装的话：
+
 ```bash
 # 1. 起 daemon（见 packages/server/README.md）
 doctor-chaos-server start
@@ -32,7 +36,7 @@ cp plugin.yaml ~/.hermes/plugins/context_engine/doctor_chaos/
 #        base_url: http://127.0.0.1:18790
 ```
 
-这个流程以后会被一条 `pipx install doctorchaos-hermes && doctorchaos-hermes bootstrap` 取代（见 deferred D4）。现在的阶段是手装。
+这个流程以后会被一条 `pipx install doctorchaos-hermes && doctorchaos-hermes bootstrap` 取代（见 deferred D4）。现在的阶段是手装或让 agent 帮你装。
 
 ## 客户端用法
 

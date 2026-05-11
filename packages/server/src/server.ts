@@ -7,6 +7,7 @@ import {
   writeSnapshot,
   type ClinicSnapshot,
 } from './persistence.js';
+import { resolveRoutingOptions, type RoutingMode } from './routing-mode.js';
 
 /**
  * Options for {@link startServer}. Full runtime knobs; the CLI parses
@@ -16,6 +17,17 @@ export interface StartServerOptions {
   readonly port: number;
   readonly host?: string;
   readonly snapshotPath?: string;
+  /**
+   * Which routing tier to use:
+   *   - ``'auto'`` (default): LLM if ``OPENAI_API_KEY`` present,
+   *     embedding if only an embedding key is present, keyword
+   *     otherwise.
+   *   - ``'llm'``: force LLM; falls back to keyword if no key.
+   *   - ``'embedding'``: force embedding; falls back to keyword if
+   *     no key.
+   *   - ``'keyword'``: always the zero-dep keyword matcher.
+   */
+  readonly routingMode?: RoutingMode;
   /**
    * Grace period in ms to wait for in-flight requests to complete on
    * graceful shutdown before hard-exiting. Default 5000.
@@ -60,10 +72,10 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
     );
   }
 
-  // 2. Construct the single Clinic. Passing `initialSpaces` /
-  //    `initialInbox` only when present keeps exactOptionalPropertyTypes happy.
+  // 2. Construct the single Clinic with the sniffed routing tier.
+  const routing = resolveRoutingOptions(options.routingMode ?? 'auto');
   const clinicOptions = {
-    autoDetectOpenAI: false,
+    ...routing.options,
     ...(priorSnapshot?.spaces ? { initialSpaces: priorSnapshot.spaces } : {}),
     ...(priorSnapshot?.inbox ? { initialInbox: priorSnapshot.inbox } : {}),
     ...(priorSnapshot?.corrections
@@ -71,6 +83,25 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
       : {}),
   };
   const clinic = new Clinic(clinicOptions);
+
+  // Warn loudly when the user asked for a premium tier but we had
+  // to fall back. Silent degradation at install time is exactly the
+  // class of surprise that makes dogfood misleading.
+  const requestedMode = options.routingMode ?? 'auto';
+  if (
+    (requestedMode === 'llm' && routing.picked !== 'llm') ||
+    (requestedMode === 'embedding' && routing.picked !== 'embedding')
+  ) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      JSON.stringify({
+        event: 'routing_tier_fallback',
+        requested: requestedMode,
+        picked: routing.picked,
+        hint: 'Set OPENAI_API_KEY to enable the higher tier.',
+      }),
+    );
+  }
 
   // 3. Persistence callback — write-through after every mutation.
   const persist: PersistFn = async (c) => {
@@ -94,6 +125,7 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
       snapshot_path: snapshotPath,
       restored_spaces: priorSnapshot?.spaces.length ?? 0,
       restored_inbox_messages: priorSnapshot?.inbox.totalMessageCount ?? 0,
+      routing_tier: routing.picked,
     }),
   );
 
