@@ -27,16 +27,25 @@ doctor-chaos-server start [--port N] [--host H] [--snapshot PATH]
 - `--host H`：绑定主机（默认 `127.0.0.1`，loopback）
 - `--snapshot PATH`：快照文件路径（默认 `~/.doctorchaos/tenants/default/snapshot.json`）
 - `--routing-mode M`：路由档位（默认 `auto`）
-  - `auto` —— 有 `OPENAI_API_KEY` 走 LLM；只有嵌入 key 走 embedding；都没有才降级 keyword
+  - `auto` —— **任何**受支持的厂商 key 存在就走 LLM；只剩 `OPENAI_API_KEY` 才降到 embedding；都没有才 keyword
   - `llm` —— 强制 LLM 直接路由（质量最好，每条消息一次 API 调用）
-  - `embedding` —— 强制嵌入相似度（便宜，质量不错）
+  - `embedding` —— 强制嵌入相似度（便宜，**只认** `OPENAI_API_KEY`）
   - `keyword` —— 强制关键词匹配（零依赖兜底）
 
-环境变量（启动时读）：
+**Doctor Chaos 不挑厂商**。LLM 档位会自动从环境变量里挑一个可用的——下面任意一个 key 在 shell env 里存在就行：
 
-- `OPENAI_API_KEY` —— 解锁 LLM / embedding 档位
-- `OPENAI_BASE_URL` —— 可选，默认 `https://api.openai.com/v1`，支持任何 OpenAI 兼容 API
-- `OPENAI_MODEL` —— 可选，默认 `gpt-4o-mini`（只影响 LLM 档位）
+| 厂商 | API key | 默认模型 | 覆盖 |
+|-----|---------|---------|------|
+| OpenAI | `OPENAI_API_KEY` | `gpt-4o-mini` | `OPENAI_BASE_URL`, `OPENAI_MODEL` |
+| Anthropic | `ANTHROPIC_API_KEY` | `claude-3-5-haiku-20241022` | `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL` |
+| DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` | `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL` |
+| Kimi / Moonshot | `MOONSHOT_API_KEY` | `moonshot-v1-8k` | `MOONSHOT_BASE_URL`, `MOONSHOT_MODEL` |
+| 智谱 GLM | `ZHIPUAI_API_KEY` | `glm-4-flash` | `ZHIPUAI_BASE_URL`, `ZHIPUAI_MODEL` |
+| 通义千问 | `DASHSCOPE_API_KEY` | `qwen-plus` | `DASHSCOPE_BASE_URL`, `DASHSCOPE_MODEL` |
+| MiniMax | `MINIMAX_API_KEY` | `MiniMax-Text-01` | `MINIMAX_BASE_URL`, `MINIMAX_MODEL` |
+| 豆包 | `ARK_API_KEY` | `doubao-1-5-pro-32k-250115` | `ARK_BASE_URL`, `ARK_MODEL` |
+
+**先到先用**（上面的顺序就是优先级）。你同时在 env 里有多家 key 时，daemon 启动日志会告诉你选了哪家（`routing_provider` 字段）。不想让它 auto 选，就 export 你想用的那一家，把别的 unset 即可；或者 CLI 上用 `--routing-mode llm` 配合你想要的 key 组合。
 
 优雅停机：`SIGINT` / `SIGTERM`，默认 5 秒 grace。
 

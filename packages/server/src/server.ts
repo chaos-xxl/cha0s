@@ -98,7 +98,11 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
         event: 'routing_tier_fallback',
         requested: requestedMode,
         picked: routing.picked,
-        hint: 'Set OPENAI_API_KEY to enable the higher tier.',
+        hint:
+          'Set any supported LLM provider key in your shell env ' +
+          '(OPENAI_API_KEY, ANTHROPIC_API_KEY, DEEPSEEK_API_KEY, ' +
+          'MOONSHOT_API_KEY, ZHIPUAI_API_KEY, DASHSCOPE_API_KEY, ' +
+          'MINIMAX_API_KEY, or ARK_API_KEY) to enable the higher tier.',
       }),
     );
   }
@@ -126,6 +130,7 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
       restored_spaces: priorSnapshot?.spaces.length ?? 0,
       restored_inbox_messages: priorSnapshot?.inbox.totalMessageCount ?? 0,
       routing_tier: routing.picked,
+      ...(routing.provider !== undefined ? { routing_provider: routing.provider } : {}),
     }),
   );
 
