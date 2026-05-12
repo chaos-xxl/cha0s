@@ -2,19 +2,17 @@
  * `doctor-chaos-server` CLI entry point.
  *
  * Usage:
- *   doctor-chaos-server start [--port 18790] [--host 127.0.0.1]
- *                             [--snapshot <path>]
+ *   doctor-chaos-server start [--port N] [--host H] [--snapshot PATH]
+ *                             [--routing-mode auto|llm|embedding|keyword]
+ *                             [--llm-base-url URL] [--llm-api-key KEY]
+ *                             [--llm-model NAME]   [--llm-format FMT]
  *   doctor-chaos-server --version
  *   doctor-chaos-server --help
- *
- * The environment variable `DOCTOR_CHAOS_PORT` is honoured when
- * `--port` is not provided. All other options can only be set via
- * flags — we deliberately avoid growing a config file at A0.
  */
 
 import { VERSION } from './version.js';
 import { startServer } from './server.js';
-import type { RoutingMode } from './routing-mode.js';
+import type { LLMConfigOverrides, LLMFormat, RoutingMode } from './routing-mode.js';
 
 const DEFAULT_PORT = 18790;
 
@@ -24,9 +22,16 @@ interface CliArgs {
   readonly host: string;
   readonly snapshotPath: string | undefined;
   readonly routingMode: RoutingMode;
+  readonly llmOverrides: LLMConfigOverrides;
 }
 
-const VALID_ROUTING_MODES: readonly RoutingMode[] = ['auto', 'llm', 'embedding', 'keyword'];
+const VALID_ROUTING_MODES: readonly RoutingMode[] = [
+  'auto',
+  'llm',
+  'embedding',
+  'keyword',
+];
+const VALID_LLM_FORMATS: readonly LLMFormat[] = ['openai-compat', 'anthropic'];
 
 function printHelp(): void {
   // eslint-disable-next-line no-console
@@ -37,31 +42,36 @@ function printHelp(): void {
       'Usage:',
       '  doctor-chaos-server start [--port N] [--host H] [--snapshot PATH]',
       '                            [--routing-mode auto|llm|embedding|keyword]',
+      '                            [--llm-base-url URL] [--llm-api-key KEY]',
+      '                            [--llm-model NAME]   [--llm-format openai-compat|anthropic]',
       '  doctor-chaos-server --version',
       '  doctor-chaos-server --help',
       '',
       'Options:',
       '  --port N            TCP port to listen on (default: 18790, env: DOCTOR_CHAOS_PORT)',
       '  --host H            Hostname to bind (default: 127.0.0.1, loopback only)',
-      '  --snapshot PATH     Path to the snapshot file (default: ~/.doctorchaos/tenants/default/snapshot.json)',
-      '  --routing-mode M    Routing tier (default: auto).',
-      '                      auto      — LLM when any supported provider key is in env,',
-      '                                  else embedding (OPENAI_API_KEY only), else keyword.',
-      '                      llm       — force LLM direct routing (best quality, one API call per message).',
-      '                      embedding — force embedding similarity (cheap, decent quality; needs OPENAI_API_KEY).',
+      '  --snapshot PATH     Snapshot file path (default: ~/.doctorchaos/tenants/default/snapshot.json)',
+      '  --routing-mode M    Routing tier (default: auto)',
+      '                      auto      — LLM if config present, else embedding, else keyword.',
+      '                      llm       — force LLM direct routing.',
+      '                      embedding — force embedding similarity (needs OPENAI_API_KEY).',
       '                      keyword   — force keyword matcher (zero-dep fallback).',
+      '  --llm-base-url URL  LLM endpoint (e.g. https://api.deepseek.com/v1). Overrides env.',
+      '  --llm-api-key KEY   LLM API key. Overrides env.',
+      '  --llm-model NAME    LLM model name (default: gpt-4o-mini).',
+      '  --llm-format F      Wire format: openai-compat (default) or anthropic.',
       '',
-      'Provider auto-detection (LLM tier; first match wins, in this order):',
-      '  OPENAI_API_KEY      — OpenAI (gpt-4o-mini by default)',
-      '  ANTHROPIC_API_KEY   — Anthropic Claude (claude-3-5-haiku by default)',
-      '  DEEPSEEK_API_KEY    — DeepSeek',
-      '  MOONSHOT_API_KEY    — Kimi / Moonshot',
-      '  ZHIPUAI_API_KEY     — 智谱 GLM',
-      '  DASHSCOPE_API_KEY   — 通义千问 (Qwen)',
-      '  MINIMAX_API_KEY     — MiniMax',
-      '  ARK_API_KEY         — 豆包 / Volcengine Ark',
+      'LLM configuration precedence (highest to lowest):',
+      '  1. CLI --llm-* flags',
+      '  2. DOCTOR_CHAOS_LLM_BASE_URL / DOCTOR_CHAOS_LLM_API_KEY /',
+      '     DOCTOR_CHAOS_LLM_MODEL / DOCTOR_CHAOS_LLM_FORMAT env vars',
+      '  3. OPENAI_API_KEY (+ optional OPENAI_BASE_URL, OPENAI_MODEL) as the',
+      '     one vendor-specific fallback for zero-config OpenAI users',
       '',
-      'For every provider, *_BASE_URL and *_MODEL override defaults.',
+      'Doctor Chaos is provider-agnostic. Any OpenAI-compatible endpoint',
+      '(DeepSeek, Kimi, 智谱, 通义, MiniMax, 豆包, OpenRouter, LiteLLM,',
+      'Ollama, LM Studio, etc.) or the native Anthropic Messages API works;',
+      'point --llm-base-url and --llm-api-key at it.',
       '',
       'This is the Doctor Chaos HTTP daemon. It listens on localhost by',
       'design. For the full list of endpoints see the package README.',
@@ -70,29 +80,23 @@ function printHelp(): void {
 }
 
 function parseArgs(argv: readonly string[]): CliArgs {
-  // Drop node + script path.
   const args = argv.slice(2);
 
+  const defaults: CliArgs = {
+    command: 'help',
+    port: DEFAULT_PORT,
+    host: '127.0.0.1',
+    snapshotPath: undefined,
+    routingMode: 'auto',
+    llmOverrides: {},
+  };
+
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-    return {
-      command: 'help',
-      port: DEFAULT_PORT,
-      host: '127.0.0.1',
-      snapshotPath: undefined,
-      routingMode: 'auto',
-    };
+    return defaults;
   }
-
   if (args[0] === '--version' || args[0] === '-v') {
-    return {
-      command: 'version',
-      port: DEFAULT_PORT,
-      host: '127.0.0.1',
-      snapshotPath: undefined,
-      routingMode: 'auto',
-    };
+    return { ...defaults, command: 'version' };
   }
-
   if (args[0] !== 'start') {
     throw new Error(
       `Unknown subcommand: '${args[0]}'. Run 'doctor-chaos-server --help' for usage.`,
@@ -110,6 +114,10 @@ function parseArgs(argv: readonly string[]): CliArgs {
   let host = '127.0.0.1';
   let snapshotPath: string | undefined = undefined;
   let routingMode: RoutingMode = 'auto';
+  let llmBaseUrl: string | undefined;
+  let llmApiKey: string | undefined;
+  let llmModel: string | undefined;
+  let llmFormat: LLMFormat | undefined;
 
   for (let i = 1; i < args.length; i++) {
     const flag = args[i];
@@ -139,6 +147,27 @@ function parseArgs(argv: readonly string[]): CliArgs {
       }
       routingMode = value as RoutingMode;
       i++;
+    } else if (flag === '--llm-base-url') {
+      if (value === undefined) throw new Error("'--llm-base-url' requires a value.");
+      llmBaseUrl = value;
+      i++;
+    } else if (flag === '--llm-api-key') {
+      if (value === undefined) throw new Error("'--llm-api-key' requires a value.");
+      llmApiKey = value;
+      i++;
+    } else if (flag === '--llm-model') {
+      if (value === undefined) throw new Error("'--llm-model' requires a value.");
+      llmModel = value;
+      i++;
+    } else if (flag === '--llm-format') {
+      if (value === undefined) throw new Error("'--llm-format' requires a value.");
+      if (!VALID_LLM_FORMATS.includes(value as LLMFormat)) {
+        throw new Error(
+          `'--llm-format' must be one of ${VALID_LLM_FORMATS.join(', ')}; got '${value}'.`,
+        );
+      }
+      llmFormat = value as LLMFormat;
+      i++;
     } else {
       throw new Error(
         `Unknown flag: '${flag}'. Run 'doctor-chaos-server --help' for usage.`,
@@ -146,7 +175,21 @@ function parseArgs(argv: readonly string[]): CliArgs {
     }
   }
 
-  return { command: 'start', port, host, snapshotPath, routingMode };
+  const llmOverrides: LLMConfigOverrides = {
+    ...(llmBaseUrl !== undefined ? { baseUrl: llmBaseUrl } : {}),
+    ...(llmApiKey !== undefined ? { apiKey: llmApiKey } : {}),
+    ...(llmModel !== undefined ? { model: llmModel } : {}),
+    ...(llmFormat !== undefined ? { format: llmFormat } : {}),
+  };
+
+  return {
+    command: 'start',
+    port,
+    host,
+    snapshotPath,
+    routingMode,
+    llmOverrides,
+  };
 }
 
 async function runStart(args: CliArgs): Promise<void> {
@@ -154,6 +197,7 @@ async function runStart(args: CliArgs): Promise<void> {
     port: args.port,
     host: args.host,
     routingMode: args.routingMode,
+    llmOverrides: args.llmOverrides,
     ...(args.snapshotPath !== undefined ? { snapshotPath: args.snapshotPath } : {}),
   });
 

@@ -25,14 +25,13 @@
 2. 我的操作系统是什么？（运行 `uname -a`）
 3. 我是否已经装了 Node.js 18 或以上？（运行 `node --version`，如果没装或版本低于 18，告诉我去哪里装——推荐 https://nodejs.org 或 `brew install node`）
 4. 我是否已经装了 Python 3.9 或以上？（运行 `python3 --version`）
-5. 我的 shell 里是否已经有任何一家 LLM 厂商的 API key？（Doctor Chaos 支持 **8 家**：OpenAI / Anthropic / DeepSeek / Kimi / 智谱 / 通义 / MiniMax / 豆包；任意一个 key 存在就能启用最高档位）
+5. 我的 shell 里是否已经有 LLM 配置？Doctor Chaos **不做厂商枚举**，只需要三样东西：一个 HTTP endpoint URL、一个 API key、一个模型名。
 
-   逐一检查，不要把 key 本身打出来：
+   检查我是否已经设置了 Doctor Chaos 自己的配置变量：
 
    ```bash
-   for var in OPENAI_API_KEY ANTHROPIC_API_KEY DEEPSEEK_API_KEY \
-              MOONSHOT_API_KEY ZHIPUAI_API_KEY DASHSCOPE_API_KEY \
-              MINIMAX_API_KEY ARK_API_KEY; do
+   for var in DOCTOR_CHAOS_LLM_BASE_URL DOCTOR_CHAOS_LLM_API_KEY \
+              DOCTOR_CHAOS_LLM_MODEL DOCTOR_CHAOS_LLM_FORMAT; do
      val=$(eval echo \$$var)
      if [ -n "$val" ]; then
        echo "$var: set"
@@ -42,7 +41,19 @@
    done
    ```
 
-   把哪些是 `set` 告诉我就行。如果一个都没有，daemon 会自动降级到 keyword 档位——能跑，但分房间的质量会差一截。
+   以及 OpenAI 回落路径：
+
+   ```bash
+   if [ -n "$OPENAI_API_KEY" ]; then
+     echo "OPENAI_API_KEY: set (will be used as fallback if DOCTOR_CHAOS_LLM_* are unset)"
+   else
+     echo "OPENAI_API_KEY: unset"
+   fi
+   ```
+
+   **如果上面全部都是 unset**，告诉我你平时用什么 LLM（Claude / GPT / DeepSeek / Kimi / 智谱 / 通义 / MiniMax / 豆包 / 本地模型 Ollama/LM Studio / OpenRouter / 自建代理 等），我会告诉你一组对应的 `DOCTOR_CHAOS_LLM_*` export 命令。**不要帮我从别的地方猜 API key**——从我明确告诉你的 key 出发。
+
+   如果全都是 unset 而我也懒得填，daemon 会自动降级到 keyword 档位——能跑，但分房间的质量会差一截。提醒我这个事实，然后让我决定。
 6. 我当前这个 agent 的插件目录在哪里？（Hermes 默认是 `~/.hermes/plugins/context_engine/`；如果你不确定，查一下你这个 agent 的文档）
 
 **如果上面任何一个答不出来，先停下来告诉我缺什么**，不要强行继续。
@@ -78,7 +89,12 @@ curl -s http://127.0.0.1:18790/v1/health
 # 期望输出：{"status":"ok","version":"0.1.0-alpha.0"}
 ```
 
-另外看 daemon 启动的那一行 JSON 日志里的 `"routing_tier"` 字段——应该是 `"llm"`、`"embedding"` 或 `"keyword"`，告诉我实际走的是哪一档。如果是 `"llm"`，还会有个 `"routing_provider"` 字段告诉我用的是哪家（openai / anthropic / deepseek / kimi / zhipu / qwen / minimax / doubao）。
+另外看 daemon 启动的那一行 JSON 日志：
+
+- `"routing_tier"` 应该是 `"llm"`、`"embedding"` 或 `"keyword"` 之一
+- 如果是 `"llm"`，还会有 `llm_base_url`、`llm_model`、`llm_format`、`llm_source` 四个字段。`llm_source` 会是 `"explicit"`（走了 DOCTOR_CHAOS_LLM_*）或 `"openai-fallback"`（走了 OPENAI_API_KEY 兼容路径）
+
+把这一行 JSON 完整贴给我，我就能告诉你 daemon 接的是什么。
 
 ## 第四步：装 Python 客户端和插件
 
@@ -183,7 +199,10 @@ cat ~/.doctorchaos/tenants/default/snapshot.json | python3 -m json.tool | head -
 - `pnpm install` 失败 → 先检查 Node 版本 `node --version`（要 18+）
 - Python 插件 import 失败 → 确认装到的 Python 和 Hermes 用的 Python 是**同一个**
 - Hermes 看不到 `doctor-chaos` 这个 engine → 检查 `plugin.yaml` 是否在正确目录，以及 Hermes 是否完整重启（不是 reload config）
-- daemon 日志里看到 `"routing_tier":"keyword"` 但你觉得应该是 `"llm"` → shell 里的厂商 key 没有被传给 daemon 进程；启动前再跑一遍第一步里的那个 for 循环确认至少有一个是 `set`，而且必须在**启动 daemon 的那个终端里**。如果你用的是 anthropic-only 环境（没有 OPENAI_API_KEY），记得 daemon 支持所有 8 家，不要以为只认 OpenAI。
+- daemon 日志里看到 `"routing_tier":"keyword"` 但你觉得应该是 `"llm"` → 两种可能：
+  - `DOCTOR_CHAOS_LLM_BASE_URL` 和 `DOCTOR_CHAOS_LLM_API_KEY` 至少有一个没设置（必须两个都有 daemon 才能用 LLM 档）
+  - 或者 shell export 了但在**启动 daemon 的那个终端里**没有生效（常见于 `source ~/.zshrc` 之后没 `exec zsh`）
+  - Doctor Chaos 不会去猜其他厂商的 env 变量名；如果你有 `ANTHROPIC_API_KEY` 或 `DEEPSEEK_API_KEY`，需要自己导出一组 `DOCTOR_CHAOS_LLM_*` 指向它们。
 
 **任何一步卡住，停下来问我**。不要改我其他配置，不要猜 API key，不要沉默地降级。
 

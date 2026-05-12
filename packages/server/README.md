@@ -21,31 +21,55 @@ doctor-chaos-server start
 ```
 doctor-chaos-server start [--port N] [--host H] [--snapshot PATH]
                           [--routing-mode auto|llm|embedding|keyword]
+                          [--llm-base-url URL] [--llm-api-key KEY]
+                          [--llm-model NAME]   [--llm-format openai-compat|anthropic]
 ```
 
 - `--port N`：监听端口（默认 `18790`，env: `DOCTOR_CHAOS_PORT`）
 - `--host H`：绑定主机（默认 `127.0.0.1`，loopback）
 - `--snapshot PATH`：快照文件路径（默认 `~/.doctorchaos/tenants/default/snapshot.json`）
 - `--routing-mode M`：路由档位（默认 `auto`）
-  - `auto` —— **任何**受支持的厂商 key 存在就走 LLM；只剩 `OPENAI_API_KEY` 才降到 embedding；都没有才 keyword
-  - `llm` —— 强制 LLM 直接路由（质量最好，每条消息一次 API 调用）
-  - `embedding` —— 强制嵌入相似度（便宜，**只认** `OPENAI_API_KEY`）
-  - `keyword` —— 强制关键词匹配（零依赖兜底）
+  - `auto` —— 有合法的 LLM 配置就走 LLM；否则降级 embedding；都没有才 keyword
+  - `llm` —— 强制 LLM 直接路由
+  - `embedding` —— 强制嵌入相似度（**只认 `OPENAI_API_KEY`**）
+  - `keyword` —— 零依赖兜底
+- `--llm-*`：显式 LLM 配置，覆盖 env
 
-**Doctor Chaos 不挑厂商**。LLM 档位会自动从环境变量里挑一个可用的——下面任意一个 key 在 shell env 里存在就行：
+## Doctor Chaos 不挑厂商
 
-| 厂商 | API key | 默认模型 | 覆盖 |
-|-----|---------|---------|------|
-| OpenAI | `OPENAI_API_KEY` | `gpt-4o-mini` | `OPENAI_BASE_URL`, `OPENAI_MODEL` |
-| Anthropic | `ANTHROPIC_API_KEY` | `claude-3-5-haiku-20241022` | `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL` |
-| DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` | `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL` |
-| Kimi / Moonshot | `MOONSHOT_API_KEY` | `moonshot-v1-8k` | `MOONSHOT_BASE_URL`, `MOONSHOT_MODEL` |
-| 智谱 GLM | `ZHIPUAI_API_KEY` | `glm-4-flash` | `ZHIPUAI_BASE_URL`, `ZHIPUAI_MODEL` |
-| 通义千问 | `DASHSCOPE_API_KEY` | `qwen-plus` | `DASHSCOPE_BASE_URL`, `DASHSCOPE_MODEL` |
-| MiniMax | `MINIMAX_API_KEY` | `MiniMax-Text-01` | `MINIMAX_BASE_URL`, `MINIMAX_MODEL` |
-| 豆包 | `ARK_API_KEY` | `doubao-1-5-pro-32k-250115` | `ARK_BASE_URL`, `ARK_MODEL` |
+Doctor Chaos 不做厂商枚举。LLM 档位由**一组项目自有配置**驱动，指向任何 OpenAI-compatible 端点或 Anthropic 原生端点都行：
 
-**先到先用**（上面的顺序就是优先级）。你同时在 env 里有多家 key 时，daemon 启动日志会告诉你选了哪家（`routing_provider` 字段）。不想让它 auto 选，就 export 你想用的那一家，把别的 unset 即可；或者 CLI 上用 `--routing-mode llm` 配合你想要的 key 组合。
+```bash
+export DOCTOR_CHAOS_LLM_BASE_URL=https://api.deepseek.com/v1
+export DOCTOR_CHAOS_LLM_API_KEY=sk-xxx
+export DOCTOR_CHAOS_LLM_MODEL=deepseek-chat
+# 可选，默认 openai-compat；如果点 Anthropic 的 /v1/messages 原生 API 就设 anthropic
+export DOCTOR_CHAOS_LLM_FORMAT=openai-compat
+```
+
+**这组 env 适用于所有主流厂商**：
+
+| 厂商 | BASE_URL | 推荐 MODEL | FORMAT |
+|-----|----------|-----------|--------|
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` | `openai-compat` |
+| Anthropic（原生） | `https://api.anthropic.com/v1` | `claude-3-5-haiku-20241022` | `anthropic` |
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` | `openai-compat` |
+| Kimi / Moonshot | `https://api.moonshot.cn/v1` | `moonshot-v1-8k` | `openai-compat` |
+| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-4-flash` | `openai-compat` |
+| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` | `openai-compat` |
+| MiniMax | `https://api.minimaxi.com/v1` | `MiniMax-Text-01` | `openai-compat` |
+| 豆包 / Ark | `https://ark.cn-beijing.volces.com/api/v3` | `doubao-1-5-pro-32k-250115` | `openai-compat` |
+| OpenRouter | `https://openrouter.ai/api/v1` | 任选 | `openai-compat` |
+| LiteLLM / OneAPI | 你的代理地址 | 代理里配置的任意模型 | `openai-compat` |
+| Ollama / LM Studio | `http://localhost:11434/v1`（Ollama）/ `http://localhost:1234/v1` | 本地模型名 | `openai-compat` |
+
+**配置优先级**（高到低）：
+
+1. CLI `--llm-*` flags
+2. `DOCTOR_CHAOS_LLM_*` env vars
+3. `OPENAI_API_KEY`（+ 可选 `OPENAI_BASE_URL`、`OPENAI_MODEL`）—— 唯一的厂商特定回落，因为 OpenAI 的 env 约定是事实标准，大部分用户已经有了
+
+> **设计说明**：之前版本尝试过探测 8 个厂商的 API key 名，这个路子在实现初期被否了。原因：枚举必然不全；命名会变；本地模型和代理没有"厂商 key"；用户的路由 LLM 不一定跟主 agent 用同一家。显式配置干净得多。
 
 优雅停机：`SIGINT` / `SIGTERM`，默认 5 秒 grace。
 

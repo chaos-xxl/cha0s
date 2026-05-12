@@ -7,7 +7,11 @@ import {
   writeSnapshot,
   type ClinicSnapshot,
 } from './persistence.js';
-import { resolveRoutingOptions, type RoutingMode } from './routing-mode.js';
+import {
+  resolveRoutingOptions,
+  type LLMConfigOverrides,
+  type RoutingMode,
+} from './routing-mode.js';
 
 /**
  * Options for {@link startServer}. Full runtime knobs; the CLI parses
@@ -19,15 +23,20 @@ export interface StartServerOptions {
   readonly snapshotPath?: string;
   /**
    * Which routing tier to use:
-   *   - ``'auto'`` (default): LLM if ``OPENAI_API_KEY`` present,
-   *     embedding if only an embedding key is present, keyword
+   *   - ``'auto'`` (default): LLM if DOCTOR_CHAOS_LLM_* or
+   *     OPENAI_API_KEY are set, embedding if only an OpenAI key is
+   *     present (caught by the LLM path in practice), keyword
    *     otherwise.
-   *   - ``'llm'``: force LLM; falls back to keyword if no key.
-   *   - ``'embedding'``: force embedding; falls back to keyword if
-   *     no key.
+   *   - ``'llm'``: force LLM; falls back to keyword if no config.
+   *   - ``'embedding'``: force embedding; needs OPENAI_API_KEY.
    *   - ``'keyword'``: always the zero-dep keyword matcher.
    */
   readonly routingMode?: RoutingMode;
+  /**
+   * Explicit LLM config overrides from the CLI, merged over env.
+   * Any field left undefined falls through to env then fallback.
+   */
+  readonly llmOverrides?: LLMConfigOverrides;
   /**
    * Grace period in ms to wait for in-flight requests to complete on
    * graceful shutdown before hard-exiting. Default 5000.
@@ -73,7 +82,11 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
   }
 
   // 2. Construct the single Clinic with the sniffed routing tier.
-  const routing = resolveRoutingOptions(options.routingMode ?? 'auto');
+  const routing = resolveRoutingOptions(
+    options.routingMode ?? 'auto',
+    process.env,
+    options.llmOverrides ?? {},
+  );
   const clinicOptions = {
     ...routing.options,
     ...(priorSnapshot?.spaces ? { initialSpaces: priorSnapshot.spaces } : {}),
@@ -99,10 +112,9 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
         requested: requestedMode,
         picked: routing.picked,
         hint:
-          'Set any supported LLM provider key in your shell env ' +
-          '(OPENAI_API_KEY, ANTHROPIC_API_KEY, DEEPSEEK_API_KEY, ' +
-          'MOONSHOT_API_KEY, ZHIPUAI_API_KEY, DASHSCOPE_API_KEY, ' +
-          'MINIMAX_API_KEY, or ARK_API_KEY) to enable the higher tier.',
+          "Set DOCTOR_CHAOS_LLM_BASE_URL + DOCTOR_CHAOS_LLM_API_KEY " +
+          '(and optionally DOCTOR_CHAOS_LLM_MODEL, DOCTOR_CHAOS_LLM_FORMAT) ' +
+          'or fall back to OPENAI_API_KEY to enable the higher tier.',
       }),
     );
   }
@@ -130,7 +142,14 @@ export async function startServer(options: StartServerOptions): Promise<RunningS
       restored_spaces: priorSnapshot?.spaces.length ?? 0,
       restored_inbox_messages: priorSnapshot?.inbox.totalMessageCount ?? 0,
       routing_tier: routing.picked,
-      ...(routing.provider !== undefined ? { routing_provider: routing.provider } : {}),
+      ...(routing.llmConfig !== undefined
+        ? {
+            llm_base_url: routing.llmConfig.baseUrl,
+            llm_model: routing.llmConfig.model,
+            llm_format: routing.llmConfig.format,
+            llm_source: routing.llmConfig.source,
+          }
+        : {}),
     }),
   );
 
