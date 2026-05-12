@@ -49,7 +49,7 @@ export DOCTOR_CHAOS_LLM_FORMAT=openai-compat
 
 **这组 env 适用于所有主流厂商**：
 
-| 厂商 | BASE_URL | 推荐 MODEL | FORMAT |
+| 厂商 / 网关 | BASE_URL | 推荐 MODEL | FORMAT |
 |-----|----------|-----------|--------|
 | OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` | `openai-compat` |
 | Anthropic（原生） | `https://api.anthropic.com/v1` | `claude-3-5-haiku-20241022` | `anthropic` |
@@ -59,9 +59,11 @@ export DOCTOR_CHAOS_LLM_FORMAT=openai-compat
 | 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` | `openai-compat` |
 | MiniMax | `https://api.minimaxi.com/v1` | `MiniMax-Text-01` | `openai-compat` |
 | 豆包 / Ark | `https://ark.cn-beijing.volces.com/api/v3` | `doubao-1-5-pro-32k-250115` | `openai-compat` |
-| OpenRouter | `https://openrouter.ai/api/v1` | 任选 | `openai-compat` |
-| LiteLLM / OneAPI | 你的代理地址 | 代理里配置的任意模型 | `openai-compat` |
-| Ollama / LM Studio | `http://localhost:11434/v1`（Ollama）/ `http://localhost:1234/v1` | 本地模型名 | `openai-compat` |
+| OpenRouter | `https://openrouter.ai/api/v1` | `openai/gpt-4o-mini` 或 `anthropic/claude-3.5-haiku`（300+ 模型任选，带厂商前缀） | `openai-compat` |
+| LiteLLM 代理 | 你的代理地址（如 `http://localhost:4000`） | 代理里 `config.yaml` 注册的任意 `model_name` | `openai-compat` |
+| OneAPI / New API 代理 | 你的代理地址（如 `http://localhost:3000/v1`） | 代理后台配置的渠道模型名 | `openai-compat` |
+| Ollama（本地） | `http://localhost:11434/v1` | `llama3.2` / `qwen2.5:7b` / `deepseek-r1:7b` 等本机已 pull 的模型 | `openai-compat` |
+| LM Studio（本地） | `http://localhost:1234/v1` | LM Studio 里已加载的模型名（在 UI 右上角可看到） | `openai-compat` |
 
 **配置优先级**（高到低）：
 
