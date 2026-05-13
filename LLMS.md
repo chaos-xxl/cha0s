@@ -51,10 +51,26 @@ Tier 3 is the recommended default. It works with:
 
 - The project has no concept of "conversations over time" (one-shot
   completion endpoints, stateless agents)
-- The project is not TypeScript/JavaScript (Doctor Chaos has no
-  Python/Go/Ruby port — tell the user to wait)
 - The project already has conversation organisation working
   correctly — integrating would add complexity without benefit
+
+**If the project is NOT TypeScript/JavaScript** (Python, Go, Ruby,
+etc.), Doctor Chaos has no native port for that language. Two
+working paths:
+
+1. **The user runs an agent that supports a context-engine plugin
+   system** (Hermes, OpenClaw, Claude Desktop, etc.). Point them at
+   the daemon + thin client setup — see
+   [INSTALL_VIA_AGENT.md](https://github.com/doctorchaos-ai/doctor-chaos/blob/feat/daemon-and-hermes-plugin/clients/python/INSTALL_VIA_AGENT.md)
+   on the `feat/daemon-and-hermes-plugin` branch (until merged into
+   `main`). This setup runs Doctor Chaos as a localhost HTTP daemon
+   wrapping `@doctorchaos-ai/server`, and a Python client + Hermes
+   `ContextEngine` plugin talks to it.
+2. **The user's project is plain Python/Go/Ruby with no host-agent
+   plugin slot**. There is no native client for that language yet;
+   tell the user to wait or to build a thin HTTP wrapper around the
+   server's `/v1/tenants/...` endpoints (the wire protocol is OpenAPI-
+   compatible).
 
 If you're unsure, ask the user: "Where in your code do you receive
 user messages? Show me that handler so I can wire Doctor Chaos into
